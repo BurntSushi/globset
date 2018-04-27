@@ -42,6 +42,8 @@ Feature enhancements:
   Add `--count-matches` flag, which is like `--count`, but for each match.
 * [FEATURE #880](https://github.com/BurntSushi/ripgrep/issues/880):
   Add a `--no-column` flag, which disables column numbers in the output.
+* [FEATURE #898](https://github.com/BurntSushi/ripgrep/issues/898):
+  Add support for `lz4` when using the `-z/--search-zip` flag.
 * [FEATURE #924](https://github.com/BurntSushi/ripgrep/issues/924):
   `termcolor` has moved to its own repository:
   https://github.com/BurntSushi/termcolor
