@@ -32,7 +32,7 @@ name = "integration"
 path = "tests/tests.rs"
 
 [workspace]
-members = ["grep", "globset", "ignore", "termcolor", "wincolor"]
+members = ["grep", "globset", "ignore"]
 
 [dependencies]
 atty = "0.2.9"
@@ -49,7 +49,7 @@ memmap = "0.6"
 num_cpus = "1"
 regex = "1"
 same-file = "1"
-termcolor = { version = "0.3.4", path = "termcolor" }
+termcolor = "1"
 
 [dependencies.clap]
 version = "2.29.4"
