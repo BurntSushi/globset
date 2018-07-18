@@ -6,6 +6,9 @@ Releases provided on Github for `x86` and `x86_64` will now work on all target
 CPUs, and will also automatically take advantage of features found on modern
 CPUs (such as AVX2) for additional optimizations.
 
+This release increases the **minimum supported Rust version** from 1.20.0 to
+1.23.0.
+
 **BREAKING CHANGES**:
 
 * When `--count` and `--only-matching` are provided simultaneously, the
