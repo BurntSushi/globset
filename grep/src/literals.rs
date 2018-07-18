@@ -67,6 +67,16 @@ impl LiteralSets {
             lit = req;
         }
 
+        // Special case: if we have any literals that are all whitespace,
+        // then this is probably a failing of the literal detection since
+        // whitespace is typically pretty common. In this case, don't bother
+        // with inner literal scanning at all and just defer to the regex.
+        let any_all_white = req_lits.iter()
+            .any(|lit| lit.iter().all(|&b| (b as char).is_whitespace()));
+        if any_all_white {
+            return None;
+        }
+
         // Special case: if we detected an alternation of inner required
         // literals and its longest literal is bigger than the longest
         // prefix/suffix, then choose the alternation. In practice, this
