@@ -317,7 +317,7 @@ ripgrep isn't currently in any other package repositories.
 
 ripgrep is written in Rust, so you'll need to grab a
 [Rust installation](https://www.rust-lang.org/) in order to compile it.
-ripgrep compiles with Rust 1.20 (stable) or newer. Building is easy:
+ripgrep compiles with Rust 1.23.0 (stable) or newer. Building is easy:
 
 ```
 $ git clone https://github.com/BurntSushi/ripgrep
