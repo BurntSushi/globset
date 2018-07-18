@@ -69,13 +69,13 @@ default-features = false
 features = ["suggestions", "color"]
 
 [features]
-avx-accel = ["bytecount/avx-accel", "regex/unstable"]
+avx-accel = [
+  "bytecount/avx-accel",
+]
 simd-accel = [
   "bytecount/simd-accel",
   "encoding_rs/simd-accel",
-  "regex/unstable",
 ]
-unstable = ["regex/unstable"]
 
 [profile.release]
 debug = true
