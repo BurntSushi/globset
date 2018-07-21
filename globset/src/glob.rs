@@ -275,6 +275,19 @@ impl Glob {
     }
 
     /// Returns the regular expression string for this glob.
+    ///
+    /// Note that regular expressions for globs are intended to be matched on
+    /// arbitrary bytes (`&[u8]`) instead of Unicode strings (`&str`). In
+    /// particular, globs are frequently used on file paths, where there is no
+    /// general guarantee that file paths are themselves valid UTF-8. As a
+    /// result, callers will need to ensure that they are using a regex API
+    /// that can match on arbitrary bytes. For example, the
+    /// [`regex`](https://crates.io/regex)
+    /// crate's
+    /// [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html)
+    /// API is not suitable for this since it matches on `&str`, but its
+    /// [`bytes::Regex`](https://docs.rs/regex/*/regex/bytes/struct.Regex.html)
+    /// API is suitable for this.
     pub fn regex(&self) -> &str {
         &self.re
     }
