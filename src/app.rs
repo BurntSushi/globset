@@ -1473,9 +1473,10 @@ contents of FILE. This option expects the COMMAND program to either be an
 absolute path or to be available in your PATH. An empty string COMMAND
 deactivates this feature.
 
-WARNING: When this flag is set, ripgrep will unconditionally spawn a process
-for every file that is searched. Therefore, this can incur a large performance
-penalty if you don't otherwise need the flexibility offered by this flag.
+    WARNING: When this flag is set, ripgrep will unconditionally spawn a
+    process for every file that is searched. Therefore, this can incur an
+    unnecessarily large performance penalty if you don't otherwise need the
+    flexibility offered by this flag.
 
 A preprocessor is not run when ripgrep is searching stdin.
 
