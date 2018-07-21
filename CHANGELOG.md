@@ -27,6 +27,8 @@ This release increases the **minimum supported Rust version** from 1.20.0 to
 
 Feature enhancements:
 
+* Added or improved file type filtering for Android, Bazel, Fuschia, Haskell,
+  Java and Puppet.
 * [FEATURE #411](https://github.com/BurntSushi/ripgrep/issues/411):
   Add a `--stats` flag, which emits aggregate statistics after search results.
 * [FEATURE #646](https://github.com/BurntSushi/ripgrep/issues/646):
@@ -40,6 +42,14 @@ Feature enhancements:
   Add `--count-matches` flag, which is like `--count`, but for each match.
 * [FEATURE #880](https://github.com/BurntSushi/ripgrep/issues/880):
   Add a `--no-column` flag, which disables column numbers in the output.
+* [FEATURE #924](https://github.com/BurntSushi/ripgrep/issues/924):
+  `termcolor` has moved to its own repository:
+  https://github.com/BurntSushi/termcolor
+* [FEATURE #967](https://github.com/BurntSushi/ripgrep/issues/967):
+  Rename `--maxdepth` to `--max-depth` for consistency. We retain `--maxdepth`
+  as a synonym for backwards compatibility.
+* [FEATURE fca9709d](https://github.com/BurntSushi/ripgrep/commit/fca9709d):
+  Improve zsh completion.
 
 Bug fixes:
 
@@ -67,6 +77,17 @@ Bug fixes:
   Upgrade `grep` crate to `regex-syntax 0.5.0`.
 * [BUG #893](https://github.com/BurntSushi/ripgrep/issues/893):
   Improve support for git submodules.
+* [BUG #948](https://github.com/BurntSushi/ripgrep/issues/948):
+  ripgrep now uses an exit code of 2 to indicate an error, and uses an exit
+  code of 1 to indicate that no matches were found.
+* [BUG #955](https://github.com/BurntSushi/ripgrep/issues/955):
+  Use buffered writing when not printing to a tty, which fixes a performance
+  regression.
+* [BUG #964](https://github.com/BurntSushi/ripgrep/issues/964):
+  Add a `--no-fixed-strings` flag to disable `-F/--fixed-strings`.
+* [BUG #988](https://github.com/BurntSushi/ripgrep/issues/988):
+  Fix a bug in the `ignore` crate that prevented the use of explicit ignore
+  files after disabling all other ignore rules.
 
 
 0.8.1 (2018-02-20)
