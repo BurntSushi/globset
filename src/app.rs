@@ -1460,8 +1460,7 @@ This flag can be disabled with --no-search-zip.
 
     let arg = RGArg::switch("no-search-zip")
         .hidden()
-        .overrides("search-zip")
-        .overrides("pre");
+        .overrides("search-zip");
     args.push(arg);
 }
 
@@ -1470,8 +1469,8 @@ fn flag_pre(args: &mut Vec<RGArg>) {
     const LONG: &str = long!("\
 For each input FILE, search the standard output of COMMAND FILE rather than the
 contents of FILE. This option expects the COMMAND program to either be an
-absolute path or to be available in your PATH. An empty string COMMAND
-deactivates this feature.
+absolute path or to be available in your PATH. Either an empty string COMMAND
+or the `--no-pre` flag will disable this behavior.
 
     WARNING: When this flag is set, ripgrep will unconditionally spawn a
     process for every file that is searched. Therefore, this can incur an
@@ -1513,8 +1512,13 @@ This overrides the -z/--search-zip flag.
 ");
     let arg = RGArg::flag("pre", "COMMAND")
         .help(SHORT).long_help(LONG)
-        .overrides("search-zip")
-        .overrides("no-search-zip");
+        .overrides("no-pre")
+        .overrides("search-zip");
+    args.push(arg);
+
+    let arg = RGArg::switch("no-pre")
+        .hidden()
+        .overrides("pre");
     args.push(arg);
 }
 
