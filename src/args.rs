@@ -62,6 +62,7 @@ pub struct Args {
     max_filesize: Option<u64>,
     mmap: bool,
     no_ignore: bool,
+    no_ignore_global: bool,
     no_ignore_messages: bool,
     no_ignore_parent: bool,
     no_ignore_vcs: bool,
@@ -351,7 +352,9 @@ impl Args {
         wd.max_filesize(self.max_filesize);
         wd.overrides(self.glob_overrides.clone());
         wd.types(self.types.clone());
-        wd.git_global(!self.no_ignore && !self.no_ignore_vcs);
+        wd.git_global(
+            !self.no_ignore && !self.no_ignore_vcs && !self.no_ignore_global
+        );
         wd.git_ignore(!self.no_ignore && !self.no_ignore_vcs);
         wd.git_exclude(!self.no_ignore && !self.no_ignore_vcs);
         wd.ignore(!self.no_ignore);
@@ -413,6 +416,7 @@ impl<'a> ArgMatches<'a> {
             max_filesize: self.max_filesize()?,
             mmap: mmap,
             no_ignore: self.no_ignore(),
+            no_ignore_global: self.no_ignore_global(),
             no_ignore_messages: self.is_present("no-ignore-messages"),
             no_ignore_parent: self.no_ignore_parent(),
             no_ignore_vcs: self.no_ignore_vcs(),
@@ -1017,6 +1021,11 @@ impl<'a> ArgMatches<'a> {
     fn no_ignore(&self) -> bool {
         self.is_present("no-ignore")
         || self.occurrences_of("unrestricted") >= 1
+    }
+
+    /// Returns true if global ignore files should be ignored.
+    fn no_ignore_global(&self) -> bool {
+        self.is_present("no-ignore-global") || self.no_ignore()
     }
 
     /// Returns true if parent ignore files should be ignored.

@@ -96,8 +96,12 @@ _rg() {
     $no"--no-hidden[don't search hidden files and directories]"
 
     + '(ignore)' # Ignore-file options
-    "(--no-ignore-parent --no-ignore-vcs)--no-ignore[don't respect ignore files]"
-    $no'(--ignore-parent --ignore-vcs)--ignore[respect ignore files]'
+    "(--no-ignore-global --no-ignore-parent --no-ignore-vcs)--no-ignore[don't respect ignore files]"
+    $no'(--ignore-global --ignore-parent --ignore-vcs)--ignore[respect ignore files]'
+
+    + '(ignore-global)' # Global ignore-file options
+    "--no-ignore-global[don't respect global ignore files]"
+    $no'--ignore-global[respect global ignore files]'
 
     + '(ignore-parent)' # Parent ignore-file options
     "--no-ignore-parent[don't respect ignore files in parent directories]"

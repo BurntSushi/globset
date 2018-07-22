@@ -47,9 +47,12 @@ Feature enhancements:
 * [FEATURE #924](https://github.com/BurntSushi/ripgrep/issues/924):
   `termcolor` has moved to its own repository:
   https://github.com/BurntSushi/termcolor
+* [FEATURE #934](https://github.com/BurntSushi/ripgrep/issues/934):
+  Add a new flag, `--no-ignore-global`, that permits disabling global
+  gitignores.
 * [FEATURE #967](https://github.com/BurntSushi/ripgrep/issues/967):
-  Rename `--maxdepth` to `--max-depth` for consistency. We retain `--maxdepth`
-  as a synonym for backwards compatibility.
+  Rename `--maxdepth` to `--max-depth` for consistency. Keep `--maxdepth` for
+  backwards compatibility.
 * [FEATURE #978](https://github.com/BurntSushi/ripgrep/issues/978):
   Add a `--pre` option to filter inputs with an arbitrary program.
 * [FEATURE fca9709d](https://github.com/BurntSushi/ripgrep/commit/fca9709d):
@@ -84,8 +87,8 @@ Bug fixes:
 * [BUG #934](https://github.com/BurntSushi/ripgrep/issues/934):
   Don't respect gitignore files when searching outside git repositories.
 * [BUG #948](https://github.com/BurntSushi/ripgrep/issues/948):
-  ripgrep now uses an exit code of 2 to indicate an error, and uses an exit
-  code of 1 to indicate that no matches were found.
+  Use exit code 2 to indicate error, and use exit code 1 to indicate no
+  matches.
 * [BUG #951](https://github.com/BurntSushi/ripgrep/issues/951):
   Add stdin example to ripgrep usage documentation.
 * [BUG #955](https://github.com/BurntSushi/ripgrep/issues/955):

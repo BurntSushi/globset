@@ -527,6 +527,7 @@ pub fn all_args_and_flags() -> Vec<RGArg> {
     flag_mmap(&mut args);
     flag_no_config(&mut args);
     flag_no_ignore(&mut args);
+    flag_no_ignore_global(&mut args);
     flag_no_ignore_messages(&mut args);
     flag_no_ignore_parent(&mut args);
     flag_no_ignore_vcs(&mut args);
@@ -1227,6 +1228,26 @@ This flag can be disabled with the --ignore flag.
     let arg = RGArg::switch("ignore")
         .hidden()
         .overrides("no-ignore");
+    args.push(arg);
+}
+
+fn flag_no_ignore_global(args: &mut Vec<RGArg>) {
+    const SHORT: &str = "Don't respect global ignore files.";
+    const LONG: &str = long!("\
+Don't respect ignore files that come from \"global\" sources such as git's
+`core.excludesFile` configuration option (which defaults to
+`$HOME/.config/git/ignore).
+
+This flag can be disabled with the --ignore-global flag.
+");
+    let arg = RGArg::switch("no-ignore-global")
+        .help(SHORT).long_help(LONG)
+        .overrides("ignore-global");
+    args.push(arg);
+
+    let arg = RGArg::switch("ignore-global")
+        .hidden()
+        .overrides("no-ignore-global");
     args.push(arg);
 }
 
