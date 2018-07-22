@@ -3,6 +3,7 @@ extern crate bytecount;
 #[macro_use]
 extern crate clap;
 extern crate encoding_rs;
+extern crate encoding_rs_io;
 extern crate globset;
 extern crate grep;
 extern crate ignore;
@@ -41,7 +42,6 @@ macro_rules! errored {
 mod app;
 mod args;
 mod config;
-mod decoder;
 mod decompressor;
 mod preprocessor;
 mod logger;

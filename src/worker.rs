@@ -8,7 +8,8 @@ use ignore::DirEntry;
 use memmap::Mmap;
 use termcolor::WriteColor;
 
-use decoder::DecodeReader;
+// use decoder::DecodeReader;
+use encoding_rs_io::DecodeReaderBytesBuilder;
 use decompressor::{self, DecompressionReader};
 use preprocessor::PreprocessorReader;
 use pathutil::strip_prefix;
@@ -319,8 +320,10 @@ impl Worker {
         path: &Path,
         rdr: R,
     ) -> Result<u64> {
-        let rdr = DecodeReader::new(
-            rdr, &mut self.decodebuf, self.opts.encoding);
+        let rdr = DecodeReaderBytesBuilder::new()
+            .encoding(self.opts.encoding)
+            .utf8_passthru(true)
+            .build_with_buffer(rdr, &mut self.decodebuf)?;
         let searcher = Searcher::new(
             &mut self.inpbuf, printer, &self.grep, path, rdr);
         searcher
