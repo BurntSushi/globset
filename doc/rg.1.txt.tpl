@@ -18,6 +18,8 @@ Synopsis
 
 *rg* [_OPTIONS_] *--type-list*
 
+*command* | *rg* [_OPTIONS_] _PATTERN_
+
 *rg* [_OPTIONS_] *--help*
 
 *rg* [_OPTIONS_] *--version*

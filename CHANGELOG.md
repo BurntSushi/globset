@@ -84,6 +84,8 @@ Bug fixes:
 * [BUG #948](https://github.com/BurntSushi/ripgrep/issues/948):
   ripgrep now uses an exit code of 2 to indicate an error, and uses an exit
   code of 1 to indicate that no matches were found.
+* [BUG #951](https://github.com/BurntSushi/ripgrep/issues/951):
+  Add stdin example to ripgrep usage documentation.
 * [BUG #955](https://github.com/BurntSushi/ripgrep/issues/955):
   Use buffered writing when not printing to a tty, which fixes a performance
   regression.

@@ -33,7 +33,8 @@ const USAGE: &str = "
     rg [OPTIONS] PATTERN [PATH ...]
     rg [OPTIONS] [-e PATTERN ...] [-f PATTERNFILE ...] [PATH ...]
     rg [OPTIONS] --files [PATH ...]
-    rg [OPTIONS] --type-list";
+    rg [OPTIONS] --type-list
+    command | rg [OPTIONS] PATTERN";
 
 const TEMPLATE: &str = "\
 {bin} {version}
