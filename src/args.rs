@@ -22,7 +22,7 @@ use ignore::overrides::{Override, OverrideBuilder};
 use ignore::types::{FileTypeDef, Types, TypesBuilder};
 use ignore;
 use printer::{ColorSpecs, Printer};
-use unescape::unescape;
+use unescape::{escape, unescape};
 use worker::{Worker, WorkerBuilder};
 
 use config;
@@ -749,7 +749,12 @@ impl<'a> ArgMatches<'a> {
                 } else if sep.len() > 1 {
                     Err(From::from(format!(
                         "A path separator must be exactly one byte, but \
-                         the given separator is {} bytes.", sep.len())))
+                         the given separator is {} bytes: {}\n\
+                         In some shells on Windows '/' is automatically \
+                         expanded. Use '//' instead.",
+                         sep.len(),
+                         escape(&sep),
+                    )))
                 } else {
                     Ok(Some(sep[0]))
                 }

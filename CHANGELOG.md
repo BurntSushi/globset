@@ -87,6 +87,9 @@ Bug fixes:
 * [BUG #955](https://github.com/BurntSushi/ripgrep/issues/955):
   Use buffered writing when not printing to a tty, which fixes a performance
   regression.
+* [BUG #957](https://github.com/BurntSushi/ripgrep/issues/957):
+  Improve the error message shown for `--path separator /` in some Windows
+  shells.
 * [BUG #964](https://github.com/BurntSushi/ripgrep/issues/964):
   Add a `--no-fixed-strings` flag to disable `-F/--fixed-strings`.
 * [BUG #988](https://github.com/BurntSushi/ripgrep/issues/988):

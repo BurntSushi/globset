@@ -11,6 +11,15 @@ enum State {
     Literal,
 }
 
+/// Escapes an arbitrary byte slice such that it can be presented as a human
+/// readable string.
+pub fn escape(bytes: &[u8]) -> String {
+    use std::ascii::escape_default;
+
+    let escaped = bytes.iter().flat_map(|&b| escape_default(b)).collect();
+    String::from_utf8(escaped).unwrap()
+}
+
 /// Unescapes a string given on the command line. It supports a limited set of
 /// escape sequences:
 ///
