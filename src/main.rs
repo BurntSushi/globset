@@ -245,6 +245,9 @@ fn run_files_parallel(args: Arc<Args>) -> Result<u64> {
                 args.no_ignore_messages(),
             ) {
                 tx.send(dent).unwrap();
+                if args.quiet() {
+                    return ignore::WalkState::Quit
+                }
             }
             ignore::WalkState::Continue
         })
@@ -266,10 +269,12 @@ fn run_files_one_thread(args: &Arc<Args>) -> Result<u64> {
             None => continue,
             Some(dent) => dent,
         };
-        if !args.quiet() {
+        file_count += 1;
+        if args.quiet() {
+            break;
+        } else {
             printer.path(dent.path());
         }
-        file_count += 1;
     }
     Ok(file_count)
 }
