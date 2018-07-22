@@ -92,10 +92,6 @@ impl DecompressionReader {
     /// If there is any error in spawning the decompression command, then
     /// return `None`, after outputting any necessary debug or error messages.
     pub fn from_path(path: &Path) -> Option<DecompressionReader> {
-        if is_tar_archive(path) {
-            debug!("{}: skipping tar archive", path.display());
-            return None;
-        }
         let extension = match path.extension().and_then(OsStr::to_str) {
             Some(extension) => extension,
             None => {
