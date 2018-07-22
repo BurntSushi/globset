@@ -1320,6 +1320,12 @@ clean!(regression_807, "test", ".", |wd: WorkDir, mut cmd: Command| {
     assert_eq!(lines, format!("{}:test\n", path(".a/c/file")));
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/900
+sherlock!(regression_900, "-fpat", "sherlock", |wd: WorkDir, mut cmd: Command| {
+    wd.create("pat", "");
+    wd.assert_err(&mut cmd);
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1
 clean!(feature_1_sjis, "Шерлок Холмс", ".", |wd: WorkDir, mut cmd: Command| {
     let sherlock =

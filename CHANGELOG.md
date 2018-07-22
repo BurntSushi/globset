@@ -84,6 +84,8 @@ Bug fixes:
   Upgrade `grep` crate to `regex-syntax 0.5.0`.
 * [BUG #893](https://github.com/BurntSushi/ripgrep/issues/893):
   Improve support for git submodules.
+* [BUG #900](https://github.com/BurntSushi/ripgrep/issues/900):
+  When no patterns are given, ripgrep should never match anything.
 * [BUG #907](https://github.com/BurntSushi/ripgrep/issues/907):
   ripgrep will now stop traversing after the first file when `--quiet --files`
   is used.
