@@ -710,6 +710,7 @@ sherlock!(no_parent_ignore_git, "Sherlock", ".",
 |wd: WorkDir, mut cmd: Command| {
     // Set up a directory hierarchy like this:
     //
+    // .git/
     // .gitignore
     // foo/
     //   .gitignore
@@ -727,6 +728,7 @@ sherlock!(no_parent_ignore_git, "Sherlock", ".",
     // In other words, we should only see results from `sherlock`, not from
     // `watson`.
     wd.remove("sherlock");
+    wd.create_dir(".git");
     wd.create(".gitignore", "sherlock\n");
     wd.create_dir("foo");
     wd.create("foo/.gitignore", "watson\n");

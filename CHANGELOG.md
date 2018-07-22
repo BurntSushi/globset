@@ -81,6 +81,8 @@ Bug fixes:
   Upgrade `grep` crate to `regex-syntax 0.5.0`.
 * [BUG #893](https://github.com/BurntSushi/ripgrep/issues/893):
   Improve support for git submodules.
+* [BUG #934](https://github.com/BurntSushi/ripgrep/issues/934):
+  Don't respect gitignore files when searching outside git repositories.
 * [BUG #948](https://github.com/BurntSushi/ripgrep/issues/948):
   ripgrep now uses an exit code of 2 to indicate an error, and uses an exit
   code of 1 to indicate that no matches were found.

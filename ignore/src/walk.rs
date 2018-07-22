@@ -457,7 +457,6 @@ impl DirEntryRaw {
 pub struct WalkBuilder {
     paths: Vec<PathBuf>,
     ig_builder: IgnoreBuilder,
-    parents: bool,
     max_depth: Option<usize>,
     max_filesize: Option<u64>,
     follow_links: bool,
@@ -472,7 +471,6 @@ impl fmt::Debug for WalkBuilder {
         f.debug_struct("WalkBuilder")
             .field("paths", &self.paths)
             .field("ig_builder", &self.ig_builder)
-            .field("parents", &self.parents)
             .field("max_depth", &self.max_depth)
             .field("max_filesize", &self.max_filesize)
             .field("follow_links", &self.follow_links)
@@ -492,7 +490,6 @@ impl WalkBuilder {
         WalkBuilder {
             paths: vec![path.as_ref().to_path_buf()],
             ig_builder: IgnoreBuilder::new(),
-            parents: true,
             max_depth: None,
             max_filesize: None,
             follow_links: false,
@@ -531,7 +528,6 @@ impl WalkBuilder {
             ig_root: ig_root.clone(),
             ig: ig_root.clone(),
             max_filesize: self.max_filesize,
-            parents: self.parents,
         }
     }
 
@@ -547,7 +543,6 @@ impl WalkBuilder {
             max_depth: self.max_depth,
             max_filesize: self.max_filesize,
             follow_links: self.follow_links,
-            parents: self.parents,
             threads: self.threads,
         }
     }
@@ -679,14 +674,12 @@ impl WalkBuilder {
 
     /// Enables reading ignore files from parent directories.
     ///
-    /// If this is enabled, then the parent directories of each file path given
-    /// are traversed for ignore files (subject to the ignore settings on
-    /// this builder). Note that file paths are canonicalized with respect to
-    /// the current working directory in order to determine parent directories.
+    /// If this is enabled, then .gitignore files in parent directories of each
+    /// file path given are respected. Otherwise, they are ignored.
     ///
     /// This is enabled by default.
     pub fn parents(&mut self, yes: bool) -> &mut WalkBuilder {
-        self.parents = yes;
+        self.ig_builder.parents(yes);
         self
     }
 
@@ -765,7 +758,6 @@ pub struct Walk {
     ig_root: Ignore,
     ig: Ignore,
     max_filesize: Option<u64>,
-    parents: bool,
 }
 
 impl Walk {
@@ -812,7 +804,7 @@ impl Iterator for Walk {
                         }
                         Some((path, Some(it))) => {
                             self.it = Some(it);
-                            if self.parents && path_is_dir(&path) {
+                            if path_is_dir(&path) {
                                 let (ig, err) = self.ig_root.add_parents(path);
                                 self.ig = ig;
                                 if let Some(err) = err {
@@ -948,7 +940,6 @@ impl WalkState {
 pub struct WalkParallel {
     paths: vec::IntoIter<PathBuf>,
     ig_root: Ignore,
-    parents: bool,
     max_filesize: Option<u64>,
     max_depth: Option<usize>,
     follow_links: bool,
@@ -1010,7 +1001,6 @@ impl WalkParallel {
                 num_waiting: num_waiting.clone(),
                 num_quitting: num_quitting.clone(),
                 threads: threads,
-                parents: self.parents,
                 max_depth: self.max_depth,
                 max_filesize: self.max_filesize,
                 follow_links: self.follow_links,
@@ -1126,9 +1116,6 @@ struct Worker {
     num_quitting: Arc<AtomicUsize>,
     /// The total number of workers.
     threads: usize,
-    /// Whether to create ignore matchers for parents of caller specified
-    /// directories.
-    parents: bool,
     /// The maximum depth of directories to descend. A value of `0` means no
     /// descension at all.
     max_depth: Option<usize>,
@@ -1156,12 +1143,10 @@ impl Worker {
                 }
                 continue;
             }
-            if self.parents {
-                if let Some(err) = work.add_parents() {
-                    if (self.f)(Err(err)).is_quit() {
-                        self.quit_now();
-                        return;
-                    }
+            if let Some(err) = work.add_parents() {
+                if (self.f)(Err(err)).is_quit() {
+                    self.quit_now();
+                    return;
                 }
             }
             let readdir = match work.read_dir() {
@@ -1645,6 +1630,7 @@ mod tests {
     #[test]
     fn gitignore() {
         let td = TempDir::new("walk-test-").unwrap();
+        mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("a"));
         wfile(td.path().join(".gitignore"), "foo");
         wfile(td.path().join("foo"), "");
@@ -1694,6 +1680,7 @@ mod tests {
     #[test]
     fn gitignore_parent() {
         let td = TempDir::new("walk-test-").unwrap();
+        mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("a"));
         wfile(td.path().join(".gitignore"), "foo");
         wfile(td.path().join("a/foo"), "");
