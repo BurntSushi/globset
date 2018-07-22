@@ -1869,7 +1869,7 @@ fn compressed_failing_gzip() {
 
     let output = cmd.output().unwrap();
     let err = String::from_utf8_lossy(&output.stderr);
-    assert_eq!(err.contains("not in gzip format"), true);
+    assert!(!err.is_empty());
 }
 
 sherlock!(feature_196_persistent_config, "sherlock",
