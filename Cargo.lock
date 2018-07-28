@@ -103,7 +103,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "globset"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "aho-corasick 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -128,7 +128,7 @@ name = "ignore"
 version = "0.4.2"
 dependencies = [
  "crossbeam 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "globset 0.4.0",
+ "globset 0.4.1",
  "lazy_static 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -243,7 +243,7 @@ dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding_rs 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding_rs_io 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "globset 0.4.0",
+ "globset 0.4.1",
  "grep 0.1.8",
  "ignore 0.4.2",
  "lazy_static 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
