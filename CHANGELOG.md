@@ -109,6 +109,8 @@ Bug fixes:
 * [BUG #988](https://github.com/BurntSushi/ripgrep/issues/988):
   Fix a bug in the `ignore` crate that prevented the use of explicit ignore
   files after disabling all other ignore rules.
+* [BUG #995](https://github.com/BurntSushi/ripgrep/issues/995):
+  Respect `$XDG_CONFIG_DIR/git/config` for detecting `core.excludesFile`.
 
 
 0.8.1 (2018-02-20)

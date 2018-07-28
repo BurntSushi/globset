@@ -515,16 +515,27 @@ impl GitignoreBuilder {
 ///
 /// Note that the file path returned may not exist.
 fn gitconfig_excludes_path() -> Option<PathBuf> {
-    gitconfig_contents()
-        .and_then(|data| parse_excludes_file(&data))
-        .or_else(excludes_file_default)
+    // git supports $HOME/.gitconfig and $XDG_CONFIG_DIR/git/config. Notably,
+    // both can be active at the same time, where $HOME/.gitconfig takes
+    // precedent. So if $HOME/.gitconfig defines a `core.excludesFile`, then
+    // we're done.
+    match gitconfig_home_contents().and_then(|x| parse_excludes_file(&x)) {
+        Some(path) => return Some(path),
+        None => {}
+    }
+    match gitconfig_xdg_contents().and_then(|x| parse_excludes_file(&x)) {
+        Some(path) => return Some(path),
+        None => {}
+    }
+    excludes_file_default()
 }
 
-/// Returns the file contents of git's global config file, if one exists.
-fn gitconfig_contents() -> Option<Vec<u8>> {
-    let home = match env::var_os("HOME") {
+/// Returns the file contents of git's global config file, if one exists, in
+/// the user's home directory.
+fn gitconfig_home_contents() -> Option<Vec<u8>> {
+    let home = match home_dir() {
         None => return None,
-        Some(home) => PathBuf::from(home),
+        Some(home) => home,
     };
     let mut file = match File::open(home.join(".gitconfig")) {
         Err(_) => return None,
@@ -534,17 +545,28 @@ fn gitconfig_contents() -> Option<Vec<u8>> {
     file.read_to_end(&mut contents).ok().map(|_| contents)
 }
 
+/// Returns the file contents of git's global config file, if one exists, in
+/// the user's XDG_CONFIG_DIR directory.
+fn gitconfig_xdg_contents() -> Option<Vec<u8>> {
+    let path = env::var_os("XDG_CONFIG_HOME")
+        .and_then(|x| if x.is_empty() { None } else { Some(PathBuf::from(x)) })
+        .or_else(|| home_dir().map(|p| p.join(".config")))
+        .map(|x| x.join("git/config"));
+    let mut file = match path.and_then(|p| File::open(p).ok()) {
+        None => return None,
+        Some(file) => io::BufReader::new(file),
+    };
+    let mut contents = vec![];
+    file.read_to_end(&mut contents).ok().map(|_| contents)
+}
+
 /// Returns the default file path for a global .gitignore file.
 ///
 /// Specifically, this respects XDG_CONFIG_HOME.
 fn excludes_file_default() -> Option<PathBuf> {
-    // We're fine with using env::home_dir for now. Its bugs are, IMO, pretty
-    // minor corner cases. We should still probably eventually migrate to
-    // the `dirs` crate to get a proper implementation.
-    #![allow(deprecated)]
     env::var_os("XDG_CONFIG_HOME")
         .and_then(|x| if x.is_empty() { None } else { Some(PathBuf::from(x)) })
-        .or_else(|| env::home_dir().map(|p| p.join(".config")))
+        .or_else(|| home_dir().map(|p| p.join(".config")))
         .map(|x| x.join("git/ignore"))
 }
 
@@ -556,7 +578,8 @@ fn parse_excludes_file(data: &[u8]) -> Option<PathBuf> {
     // a full INI parser. Yuck.
     lazy_static! {
         static ref RE: Regex = Regex::new(
-            r"(?ium)^\s*excludesfile\s*=\s*(.+)\s*$").unwrap();
+            r"(?im)^\s*excludesfile\s*=\s*(.+)\s*$"
+        ).unwrap();
     };
     let caps = match RE.captures(data) {
         None => return None,
@@ -567,11 +590,20 @@ fn parse_excludes_file(data: &[u8]) -> Option<PathBuf> {
 
 /// Expands ~ in file paths to the value of $HOME.
 fn expand_tilde(path: &str) -> String {
-    let home = match env::var("HOME") {
-        Err(_) => return path.to_string(),
-        Ok(home) => home,
+    let home = match home_dir() {
+        None => return path.to_string(),
+        Some(home) => home.to_string_lossy().into_owned(),
     };
     path.replace("~", &home)
+}
+
+/// Returns the location of the user's home directory.
+fn home_dir() -> Option<PathBuf> {
+    // We're fine with using env::home_dir for now. Its bugs are, IMO, pretty
+    // minor corner cases. We should still probably eventually migrate to
+    // the `dirs` crate to get a proper implementation.
+    #![allow(deprecated)]
+    env::home_dir()
 }
 
 #[cfg(test)]
