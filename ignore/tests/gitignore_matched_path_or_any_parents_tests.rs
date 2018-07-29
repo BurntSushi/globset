@@ -1,13 +1,11 @@
 extern crate ignore;
 
-
 use std::path::Path;
 
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
 
-
-const IGNORE_FILE: &'static str = "tests/gitignore_matched_path_or_any_parents_tests.gitignore";
-
+const IGNORE_FILE: &'static str =
+    "tests/gitignore_matched_path_or_any_parents_tests.gitignore";
 
 fn get_gitignore() -> Gitignore {
     let mut builder = GitignoreBuilder::new("ROOT");
@@ -16,9 +14,8 @@ fn get_gitignore() -> Gitignore {
     builder.build().unwrap()
 }
 
-
 #[test]
-#[should_panic(expected = "path is expect to be under the root")]
+#[should_panic(expected = "path is expected to be under the root")]
 fn test_path_should_be_under_root() {
     let gitignore = get_gitignore();
     let path = "/tmp/some_file";
@@ -26,11 +23,12 @@ fn test_path_should_be_under_root() {
     assert!(false);
 }
 
-
 #[test]
 fn test_files_in_root() {
     let gitignore = get_gitignore();
-    let m = |path: &str| gitignore.matched_path_or_any_parents(Path::new(path), false);
+    let m = |path: &str| {
+        gitignore.matched_path_or_any_parents(Path::new(path), false)
+    };
 
     // 0x
     assert!(m("ROOT/file_root_00").is_ignore());
@@ -61,7 +59,9 @@ fn test_files_in_root() {
 #[test]
 fn test_files_in_deep() {
     let gitignore = get_gitignore();
-    let m = |path: &str| gitignore.matched_path_or_any_parents(Path::new(path), false);
+    let m = |path: &str| {
+        gitignore.matched_path_or_any_parents(Path::new(path), false)
+    };
 
     // 0x
     assert!(m("ROOT/parent_dir/file_deep_00").is_ignore());
@@ -92,8 +92,9 @@ fn test_files_in_deep() {
 #[test]
 fn test_dirs_in_root() {
     let gitignore = get_gitignore();
-    let m =
-        |path: &str, is_dir: bool| gitignore.matched_path_or_any_parents(Path::new(path), is_dir);
+    let m = |path: &str, is_dir: bool| {
+        gitignore.matched_path_or_any_parents(Path::new(path), is_dir)
+    };
 
     // 00
     assert!(m("ROOT/dir_root_00", true).is_ignore());
@@ -196,20 +197,25 @@ fn test_dirs_in_root() {
 #[test]
 fn test_dirs_in_deep() {
     let gitignore = get_gitignore();
-    let m =
-        |path: &str, is_dir: bool| gitignore.matched_path_or_any_parents(Path::new(path), is_dir);
+    let m = |path: &str, is_dir: bool| {
+        gitignore.matched_path_or_any_parents(Path::new(path), is_dir)
+    };
 
     // 00
     assert!(m("ROOT/parent_dir/dir_deep_00", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_00/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_00/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_00/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_00/child_dir/file", false).is_ignore()
+    );
 
     // 01
     assert!(m("ROOT/parent_dir/dir_deep_01", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_01/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_01/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_01/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_01/child_dir/file", false).is_ignore()
+    );
 
     // 02
     assert!(m("ROOT/parent_dir/dir_deep_02", true).is_none());
@@ -251,47 +257,67 @@ fn test_dirs_in_deep() {
     assert!(m("ROOT/parent_dir/dir_deep_20", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_20/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_20/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_20/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_20/child_dir/file", false).is_ignore()
+    );
 
     // 21
     assert!(m("ROOT/parent_dir/dir_deep_21", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_21/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_21/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_21/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_21/child_dir/file", false).is_ignore()
+    );
 
     // 22
-    assert!(m("ROOT/parent_dir/dir_deep_22", true).is_none()); // dir itself doesn't match
+    // dir itself doesn't match
+    assert!(m("ROOT/parent_dir/dir_deep_22", true).is_none());
     assert!(m("ROOT/parent_dir/dir_deep_22/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_22/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_22/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_22/child_dir/file", false).is_ignore()
+    );
 
     // 23
-    assert!(m("ROOT/parent_dir/dir_deep_23", true).is_none()); // dir itself doesn't match
+    // dir itself doesn't match
+    assert!(m("ROOT/parent_dir/dir_deep_23", true).is_none());
     assert!(m("ROOT/parent_dir/dir_deep_23/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_23/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_23/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_23/child_dir/file", false).is_ignore()
+    );
 
     // 30
     assert!(m("ROOT/parent_dir/dir_deep_30", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_30/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_30/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_30/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_30/child_dir/file", false).is_ignore()
+    );
 
     // 31
     assert!(m("ROOT/parent_dir/dir_deep_31", true).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_31/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_31/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_31/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_31/child_dir/file", false).is_ignore()
+    );
 
     // 32
-    assert!(m("ROOT/parent_dir/dir_deep_32", true).is_none()); // dir itself doesn't match
+    // dir itself doesn't match
+    assert!(m("ROOT/parent_dir/dir_deep_32", true).is_none());
     assert!(m("ROOT/parent_dir/dir_deep_32/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_32/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_32/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_32/child_dir/file", false).is_ignore()
+    );
 
     // 33
-    assert!(m("ROOT/parent_dir/dir_deep_33", true).is_none()); // dir itself doesn't match
+    // dir itself doesn't match
+    assert!(m("ROOT/parent_dir/dir_deep_33", true).is_none());
     assert!(m("ROOT/parent_dir/dir_deep_33/file", false).is_ignore());
     assert!(m("ROOT/parent_dir/dir_deep_33/child_dir", true).is_ignore());
-    assert!(m("ROOT/parent_dir/dir_deep_33/child_dir/file", false).is_ignore());
+    assert!(
+        m("ROOT/parent_dir/dir_deep_33/child_dir/file", false).is_ignore()
+    );
 }
