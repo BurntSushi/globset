@@ -220,6 +220,11 @@ impl Gitignore {
     /// determined by a common suffix of the directory containing this
     /// gitignore) is stripped. If there is no common suffix/prefix overlap,
     /// then `path` is assumed to be relative to this matcher.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the given file path is not under the root path
+    /// of this matcher.
     pub fn matched_path_or_any_parents<P: AsRef<Path>>(
         &self,
         path: P,
@@ -229,10 +234,8 @@ impl Gitignore {
             return Match::None;
         }
         let mut path = self.strip(path.as_ref());
-        debug_assert!(
-            !path.has_root(),
-            "path is expect to be under the root"
-        );
+        assert!(!path.has_root(), "path is expect to be under the root");
+
         match self.matched_stripped(path, is_dir) {
             Match::None => (), // walk up
             a_match => return a_match,
