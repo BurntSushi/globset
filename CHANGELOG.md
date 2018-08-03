@@ -1,13 +1,17 @@
-0.9.0 (TBD)
-===========
-This is a new minor version release of ripgrep that mostly contains bug fixes.
+0.9.0 (2018-08-03)
+==================
+This is a new minor version release of ripgrep that contains some minor new
+features and a panoply of bug fixes.
 
-Releases provided on Github for `x86` and `x86_64` will now work on all target
-CPUs, and will also automatically take advantage of features found on modern
-CPUs (such as AVX2) for additional optimizations.
+Releases provided on Github for `x86_64` will now work on all target CPUs, and
+will also automatically take advantage of features found on modern CPUs (such
+as AVX2) for additional optimizations.
 
 This release increases the **minimum supported Rust version** from 1.20.0 to
 1.23.0.
+
+It is anticipated that the next release of ripgrep (0.10.0) will provide
+multi-line search support and a JSON output format.
 
 **BREAKING CHANGES**:
 
@@ -37,7 +41,7 @@ Feature enhancements:
 * [FEATURE #702](https://github.com/BurntSushi/ripgrep/issues/702):
   Support `\u{..}` Unicode escape sequences.
 * [FEATURE #812](https://github.com/BurntSushi/ripgrep/issues/812):
-  Add `-b/--byte-offset` flag that reports byte offset of each matching line.
+  Add `-b/--byte-offset` flag that shows the byte offset of each matching line.
 * [FEATURE #814](https://github.com/BurntSushi/ripgrep/issues/814):
   Add `--count-matches` flag, which is like `--count`, but for each match.
 * [FEATURE #880](https://github.com/BurntSushi/ripgrep/issues/880):
@@ -81,7 +85,7 @@ Bug fixes:
 * [BUG #852](https://github.com/BurntSushi/ripgrep/issues/852):
   Be robust with respect to `ENOMEM` errors returned by `mmap`.
 * [BUG #853](https://github.com/BurntSushi/ripgrep/issues/853):
-  Upgrade `grep` crate to `regex-syntax 0.5.0`.
+  Upgrade `grep` crate to `regex-syntax 0.6.0`.
 * [BUG #893](https://github.com/BurntSushi/ripgrep/issues/893):
   Improve support for git submodules.
 * [BUG #900](https://github.com/BurntSushi/ripgrep/issues/900):
