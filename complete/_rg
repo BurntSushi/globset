@@ -26,8 +26,10 @@ _rg() {
   # style set. Note that this prefix check has to be updated manually to account
   # for all of the potential negation options listed below!
   if
-    # (--[imn]* => --ignore*, --messages, --no-*)
-    [[ $PREFIX$SUFFIX == --[imn]* ]] ||
+    # We also want to list all of these options during testing
+    [[ $_RG_COMPLETE_LIST_ARGS == (1|t*|y*) ]] ||
+    # (--[imnp]* => --ignore*, --messages, --no-*, --pcre2-unicode)
+    [[ $PREFIX$SUFFIX == --[imnp]* ]] ||
     zstyle -t ":complete:$curcontext:*" complete-all
   then
     no=
@@ -61,8 +63,12 @@ _rg() {
     $no"--no-column[don't show column numbers for matches]"
 
     + '(count)' # Counting options
-    '(passthru)'{-c,--count}'[only show count of matching lines for each file]'
-    '(passthru)--count-matches[only show count of individual matches for each file]'
+    {-c,--count}'[only show count of matching lines for each file]'
+    '--count-matches[only show count of individual matches for each file]'
+
+    + '(encoding)' # Encoding options
+    {-E+,--encoding=}'[specify text encoding of files to search]: :_rg_encodings'
+    $no'--no-encoding[use default text encoding]'
 
     + file # File-input options
     '*'{-f+,--file=}'[specify file containing patterns to search for]: :_files'
@@ -111,17 +117,18 @@ _rg() {
     "--no-ignore-vcs[don't respect version control ignore files]"
     $no'--ignore-vcs[respect version control ignore files]'
 
-    + '(json)' # json options
-    '--json[output results in a JSON Lines format]'
-    $no"--no-json[output results in the standard format]"
+    + '(json)' # JSON options
+    '--json[output results in JSON Lines format]'
+    $no"--no-json[don't output results in JSON Lines format]"
 
-    + '(line)' # Line-number options
+    + '(line-number)' # Line-number options
     {-n,--line-number}'[show line numbers for matches]'
     {-N,--no-line-number}"[don't show line numbers for matches]"
 
-    + '(line terminator)' # line terminator options
-    '--crlf[use CRLF as a line terminator]'
-    $no"--no-crlf[do not use CRLF as a line terminator]"
+    + '(line-terminator)' # Line-terminator options
+    '--crlf[use CRLF as line terminator]'
+    $no"--no-crlf[don't use CRLF as line terminator]"
+    '(text)--null-data[use NUL as line terminator]'
 
     + '(max-depth)' # Directory-depth options
     '--max-depth=[specify max number of directories to descend]:number of directories'
@@ -139,23 +146,27 @@ _rg() {
     '--mmap[search using memory maps when possible]'
     "--no-mmap[don't search using memory maps]"
 
-    + '(multiline)' # multiline options
+    + '(multiline)' # Multiline options
     {-U,--multiline}'[permit matching across multiple lines]'
-    $no"--no-multiline[restrict matches to at most one line each]"
-    '--multiline-dotall[make "." match newline in multiline mode]'
+    $no'(multiline-dotall)--no-multiline[restrict matches to at most one line each]'
+
+    + '(multiline-dotall)' # Multiline DOTALL options
+    '(--no-multiline)--multiline-dotall[allow "." to match newline (with -U)]'
 
     + '(only)' # Only-match options
-    '(passthru replace)'{-o,--only-matching}'[show only matching part of each line]'
+    {-o,--only-matching}'[show only matching part of each line]'
 
     + '(passthru)' # Pass-through options
-    '(--vimgrep count only replace)--passthru[show both matching and non-matching lines]'
-    '!(--vimgrep count only replace)--passthrough'
+    '(--vimgrep)--passthru[show both matching and non-matching lines]'
+    '!(--vimgrep)--passthrough'
 
     + '(pcre2)' # PCRE2 options
-    {-P,--pcre2}'[Enable matching with PCRE2]'
-    $no"--no-pcre2[don't use PCRE2]"
-    "--pcre2-unicode[Enable PCRE2 Unicode mode]"
-    $no"--pcre2-unicode[Disable PCRE2 Unicode mode]"
+    {-P,--pcre2}'[enable matching with PCRE2]'
+    $no'(pcre2-unicode)--no-pcre2[disable matching with PCRE2]'
+
+    + '(pcre2-unicode)' # PCRE2 Unicode options
+    $no'(--no-pcre2-unicode)--pcre2-unicode[enable PCRE2 Unicode mode (with -P)]'
+    '(--no-pcre2-unicode)--no-pcre2-unicode[disable PCRE2 Unicode mode (with -P)]'
 
     + '(pre)' # Preprocessing options
     '(-z --search-zip)--pre=[specify preprocessor utility]:preprocessor utility:_command_names -e'
@@ -169,24 +180,24 @@ _rg() {
     '(1 file)*'{-e+,--regexp=}'[specify pattern]:pattern'
 
     + '(replace)' # Replacement options
-    '(count only passthru)'{-r+,--replace=}'[specify string used to replace matches]:replace string'
+    {-r+,--replace=}'[specify string used to replace matches]:replace string'
 
     + '(sort)' # File-sorting options
     '(threads)--sort-files[sort results by file path (disables parallelism)]'
     $no"--no-sort-files[don't sort results by file path]"
 
-    + stats # Statistics options
+    + '(stats)' # Statistics options
     '(--files file-match)--stats[show search statistics]'
     $no"--no-stats[don't show search statistics]"
 
     + '(text)' # Binary-search options
     {-a,--text}'[search binary files as if they were text]'
-    $no"--no-text[don't search binary files as if they were text]"
+    $no"(--null-data)--no-text[don't search binary files as if they were text]"
 
     + '(threads)' # Thread-count options
     '(--sort-files)'{-j+,--threads=}'[specify approximate number of threads to use]:number of threads'
 
-    + '(trim)' # trim options
+    + '(trim)' # Trim options
     '--trim[trim any ASCII whitespace prefix from each line]'
     $no"--no-trim[don't trim ASCII whitespace prefix from each line]"
 
@@ -218,7 +229,6 @@ _rg() {
     '--context-separator=[specify string used to separate non-continuous context lines in output]:separator'
     '--debug[show debug messages]'
     '--dfa-size-limit=[specify upper size limit of generated DFA]:DFA size (bytes)'
-    '(-E --encoding)'{-E+,--encoding=}'[specify text encoding of files to search]: :_rg_encodings'
     "(1 stats)--files[show each file that would be searched (but don't search)]"
     '*--ignore-file=[specify additional ignore file]:ignore file:_files'
     '(-v --invert-match)'{-v,--invert-match}'[invert matching]'
@@ -227,7 +237,6 @@ _rg() {
     '--max-filesize=[specify size above which files should be ignored]:file size (bytes)'
     "--no-config[don't load configuration files]"
     '(-0 --null)'{-0,--null}'[print NUL byte after file names]'
-    '--null-data[use NUL as a line terminator]'
     '--path-separator=[specify path separator to use when printing file names]:separator'
     '(-q --quiet)'{-q,--quiet}'[suppress normal output]'
     '--regex-size-limit=[specify upper size limit of compiled regex]:regex size (bytes)'
