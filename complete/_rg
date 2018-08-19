@@ -152,6 +152,7 @@ _rg() {
 
     + '(multiline-dotall)' # Multiline DOTALL options
     '(--no-multiline)--multiline-dotall[allow "." to match newline (with -U)]'
+    $no"(--no-multiline)--no-multiline-dotall[don't allow \".\" to match newline (with -U)]"
 
     + '(only)' # Only-match options
     {-o,--only-matching}'[show only matching part of each line]'

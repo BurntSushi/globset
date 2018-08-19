@@ -1425,9 +1425,17 @@ file if you prefer \"dot all\" semantics by default. Note that regardless of
 whether this flag is used, \"dot all\" semantics can still be controlled via
 inline flags in the regex pattern itself, e.g., '(?s:.)' always enables \"dot
 all\" whereas '(?-s:.)' always disables \"dot all\".
+
+This flag can be disabled with --no-multiline-dotall.
 ");
     let arg = RGArg::switch("multiline-dotall")
-        .help(SHORT).long_help(LONG);
+        .help(SHORT).long_help(LONG)
+        .overrides("no-multiline-dotall");
+    args.push(arg);
+
+    let arg = RGArg::switch("no-multiline-dotall")
+        .hidden()
+        .overrides("multiline-dotall");
     args.push(arg);
 }
 
