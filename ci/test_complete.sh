@@ -39,12 +39,14 @@ main() {
     print -rl - 'Comparing options:' "-$rg" "+$_rg"
 
     # 'Parse' options out of the `--help` output. To prevent false positives we
-    # only look at lines where the first non-white-space character is `-`
+    # only look at lines where the first non-white-space character is `-`, or
+    # where a long option starting with certain letters (see `_rg`) is found.
+    # Occasionally we may have to handle some manually, however
     help_args=( ${(f)"$(
         $rg --help |
-        $rg -- '^\s*-' |
-        $rg -io -- '[\t ,](-[a-z0-9]|--[a-z0-9-]+)\b' |
-        tr -d '\t ,' |
+        $rg -i -- '^\s+--?[a-z0-9]|--[imnp]' |
+        $rg -ior '$1' -- $'[\t /\"\'`.,](-[a-z0-9]|--[a-z0-9-]+)\\b' |
+        $rg -v -- --print0 | # False positives
         sort -u
     )"} )
 
@@ -58,8 +60,6 @@ main() {
     comp_args=( ${comp_args%%-[:[]*}  ) # Strip everything after -optname-
     comp_args=( ${comp_args%%[:+=[]*} ) # Strip everything after other optspecs
     comp_args=( ${comp_args##[^-]*}   ) # Remove non-options
-
-    # This probably isn't necessary, but we should ensure the same order
     comp_args=( ${(f)"$( print -rl - $comp_args | sort -u )"} )
 
     (( $#help_args )) || {
