@@ -1424,7 +1424,7 @@ This flag is generally intended to be used in an alias or your ripgrep config
 file if you prefer \"dot all\" semantics by default. Note that regardless of
 whether this flag is used, \"dot all\" semantics can still be controlled via
 inline flags in the regex pattern itself, e.g., '(?s:.)' always enables \"dot
-all\" where as '(?-s:.)' always disables \"dot all\".
+all\" whereas '(?-s:.)' always disables \"dot all\".
 ");
     let arg = RGArg::switch("multiline-dotall")
         .help(SHORT).long_help(LONG);
@@ -1469,7 +1469,7 @@ fn flag_no_ignore_global(args: &mut Vec<RGArg>) {
     const LONG: &str = long!("\
 Don't respect ignore files that come from \"global\" sources such as git's
 `core.excludesFile` configuration option (which defaults to
-`$HOME/.config/git/ignore).
+`$HOME/.config/git/ignore`).
 
 This flag can be disabled with the --ignore-global flag.
 ");
@@ -1581,11 +1581,11 @@ the default of '\\n'.
 
 This is useful when searching large binary files that would otherwise have very
 long lines if '\\n' were used as the line terminator. In particular, ripgrep
-requires that, at a minimum, each line must fit into memory. Use NUL instead
+requires that, at a minimum, each line must fit into memory. Using NUL instead
 can be a useful stopgap to keep memory requirements low and avoid OOM (out of
 memory) conditions.
 
-This is also useful for processing NUL delimited data, such that that emitted
+This is also useful for processing NUL delimited data, such as that emitted
 when using ripgrep's -0/--null flag or find's --print0 flag.
 
 Using this flag implies -a/--text.
@@ -1684,7 +1684,7 @@ enabled. Instead, PCRE2 *requires* that everything it searches when Unicode
 mode is enabled is valid UTF-8. (Or valid UTF-16/UTF-32, but for the purposes
 of ripgrep, we only discuss UTF-8.) This means that if you have PCRE2's Unicode
 mode enabled and you attempt to search invalid UTF-8, then the search for that
-file will hault and print an error. For this reason, when PCRE2's Unicode mode
+file will halt and print an error. For this reason, when PCRE2's Unicode mode
 is enabled, ripgrep will automatically \"fix\" invalid UTF-8 sequences by
 replacing them with the Unicode replacement codepoint.
 
