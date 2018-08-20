@@ -1,6 +1,6 @@
 [package]
 name = "grep-regex"
-version = "0.0.1"  #:version
+version = "0.1.0"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 Use Rust's regex library with the 'grep' crate.
@@ -14,8 +14,8 @@ license = "Unlicense/MIT"
 
 [dependencies]
 log = "0.4"
-grep-matcher = { version = "0.0.1", path = "../grep-matcher" }
+grep-matcher = { version = "0.1.0", path = "../grep-matcher" }
 regex = "1"
 regex-syntax = "0.6"
-thread_local = "0.3.5"
+thread_local = "0.3.6"
 utf8-ranges = "1"

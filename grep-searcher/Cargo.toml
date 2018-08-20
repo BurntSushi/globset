@@ -1,6 +1,6 @@
 [package]
 name = "grep-searcher"
-version = "0.0.1"  #:version
+version = "0.1.0"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 Fast line oriented regex searching as a library.
@@ -16,13 +16,13 @@ license = "Unlicense/MIT"
 bytecount = "0.3.1"
 encoding_rs = "0.8"
 encoding_rs_io = "0.1.2"
-grep-matcher = { version = "0.0.1", path = "../grep-matcher" }
+grep-matcher = { version = "0.1.0", path = "../grep-matcher" }
 log = "0.4"
 memchr = "2"
 memmap = "0.6"
 
 [dev-dependencies]
-grep-regex = { version = "0.0.1", path = "../grep-regex" }
+grep-regex = { version = "0.1.0", path = "../grep-regex" }
 regex = "1"
 
 [features]

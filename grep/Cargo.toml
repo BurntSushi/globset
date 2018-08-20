@@ -13,11 +13,11 @@ keywords = ["regex", "grep", "egrep", "search", "pattern"]
 license = "Unlicense/MIT"
 
 [dependencies]
-grep-matcher = { version = "0.0.1", path = "../grep-matcher" }
-grep-pcre2 = { version = "0.0.1", path = "../grep-pcre2", optional = true }
-grep-printer = { version = "0.0.1", path = "../grep-printer" }
-grep-regex = { version = "0.0.1", path = "../grep-regex" }
-grep-searcher = { version = "0.0.1", path = "../grep-searcher" }
+grep-matcher = { version = "0.1.0", path = "../grep-matcher" }
+grep-pcre2 = { version = "0.1.0", path = "../grep-pcre2", optional = true }
+grep-printer = { version = "0.1.0", path = "../grep-printer" }
+grep-regex = { version = "0.1.0", path = "../grep-regex" }
+grep-searcher = { version = "0.1.0", path = "../grep-searcher" }
 
 [dev-dependencies]
 atty = "0.2.11"
