@@ -41,10 +41,10 @@ mod search;
 mod subject;
 mod unescape;
 
-pub type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
+type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
-pub fn main() {
-    match Args::parse().and_then(run) {
+fn main() {
+    match Args::parse().and_then(try_main) {
         Ok(true) => process::exit(0),
         Ok(false) => process::exit(1),
         Err(err) => {
@@ -54,7 +54,7 @@ pub fn main() {
     }
 }
 
-fn run(args: Args) -> Result<bool> {
+fn try_main(args: Args) -> Result<bool> {
     use args::Command::*;
 
     match args.command()? {
