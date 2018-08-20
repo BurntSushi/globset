@@ -16,6 +16,7 @@
 * [How do I get around the regex size limit?](#size-limit)
 * [How do I make the `-f/--file` flag faster?](#dfa-size)
 * [How do I make the output look like The Silver Searcher's output?](#silver-searcher-output)
+* [Why does ripgrep get slower when I enabled PCRE2 regexes?](#pcre2-slow)
 * [When I run `rg`, why does it execute some other command?](#rg-other-cmd)
 * [How do I create an alias for ripgrep on Windows?](#rg-alias-windows)
 * [How do I create a PowerShell profile?](#powershell-profile)
@@ -390,6 +391,297 @@ $ cat $HOME/.config/ripgrep/rc
 --colors=match:style:nobold
 $ RIPGREP_CONFIG_PATH=$HOME/.config/ripgrep/rc rg foo
 ```
+
+
+<h3 name="pcre2-slow">
+Why does ripgrep get slower when I enable PCRE2 regexes?
+</h3>
+
+When you use the `--pcre2` (`-P` for short) flag, ripgrep will use the PCRE2
+regex engine instead of the default. Both regex engines are quite fast,
+but PCRE2 provides a number of additional features such as look-around and
+backreferences that many enjoy using. This is largely because PCRE2 uses
+a backtracking implementation where as the default regex engine uses a finite
+automaton based implementation. The former provides the ability to add lots of
+bells and whistles over the latter, but the latter executes with worst case
+linear time complexity.
+
+With that out of the way, if you've used `-P` with ripgrep, you may have
+noticed that it can be slower. The reasons for why this is are quite complex,
+and they are complex because the optimizations that ripgrep uses to implement
+fast search are complex.
+
+The task ripgrep has before it is somewhat simple; all it needs to do is search
+a file for occurrences of some pattern and then print the lines containing
+those occurrences. The problem lies in what is considered a valid match and how
+exactly we read the bytes from a file.
+
+In terms of what is considered a valid match, remember that ripgrep will only
+report matches spanning a single line by default. The problem here is that
+some patterns can match across multiple lines, and ripgrep needs to prevent
+that from happening. For example, `foo\sbar` will match `foo\nbar`. The most
+obvious way to achieve this is to read the data from a file, and then apply
+the pattern search to that data for each line. The problem with this approach
+is that it can be quite slow; it would be much faster to let the pattern
+search across as much data as possible. It's faster because it gets rid of the
+overhead of finding the boundaries of every line, and also because it gets rid
+of the overhead of starting and stopping the pattern search for every single
+line. (This is operating under the general assumption that matching lines are
+much rarer than non-matching lines.)
+
+It turns out that we can use the faster approach by applying a very simple
+restriction to the pattern: *statically prevent* the pattern from matching
+through a `\n` character. Namely, when given a pattern like `foo\sbar`,
+ripgrep will remove `\n` from the `\s` character class automatically. In some
+cases, a simple removal is not so easy. For example, ripgrep will return an
+error when your pattern includes a `\n` literal:
+
+```
+$ rg '\n'
+the literal '"\n"' is not allowed in a regex
+```
+
+So what does this have to do with PCRE2? Well, ripgrep's default regex engine
+exposes APIs for doing syntactic analysis on the pattern in a way that makes
+it quite easy to strip `\n` from the pattern (or otherwise detect it and report
+an error if stripping isn't possible). PCRE2 seemingly does not provide a
+similar API, so ripgrep does not do any stripping when PCRE2 is enabled. This
+forces ripgrep to use the "slow" search strategy of searching each line
+individually.
+
+OK, so if enabling PCRE2 slows down the default method of searching because it
+forces matches to be limited to a single line, then why is PCRE2 also sometimes
+slower when performing multiline searches? Well, that's because there are
+*multiple* reasons why using PCRE2 in ripgrep can be slower than the default
+regex engine. This time, blame PCRE2's Unicode support, which ripgrep enables
+by default. In particular, PCRE2 cannot simultaneously enable Unicode support
+and search arbitrary data. That is, when PCRE2's Unicode support is enabled,
+the data **must** be valid UTF-8 (to do otherwise is to invoke undefined
+behavior). This is in contrast to ripgrep's default regex engine, which can
+enable Unicode support and still search arbitrary data. ripgrep's default
+regex engine simply won't match invalid UTF-8 for a pattern that can otherwise
+only match valid UTF-8. Why doesn't PCRE2 do the same? This author isn't
+familiar with its internals, so we can't comment on it here.
+
+The bottom line here is that we can't enable PCRE2's Unicode support without
+simultaneously incurring a performance penalty for ensuring that we are
+searching valid UTF-8. In particular, ripgrep will transcode the contents
+of each file to UTF-8 while replacing invalid UTF-8 data with the Unicode
+replacement codepoint. ripgrep then disables PCRE2's own internal UTF-8
+checking, since we've guaranteed the data we hand it will be valid UTF-8. The
+reason why ripgrep takes this approach is because if we do hand PCRE2 invalid
+UTF-8, then it will report a match error if it comes across an invalid UTF-8
+sequence. This is not good news for ripgrep, since it will stop it from
+searching the rest of the file, and will also print potentially undesirable
+error messages to users.
+
+All right, the above is a lot of information to swallow if you aren't already
+familiar with ripgrep internals. Let's make this concrete with some examples.
+First, let's get some data big enough to magnify the performance differences:
+
+```
+$ curl -O 'https://burntsushi.net/stuff/subtitles2016-sample.gz'
+$ gzip -d subtitles2016-sample
+$ md5sum subtitles2016-sample
+e3cb796a20bbc602fbfd6bb43bda45f5   subtitles2016-sample
+```
+
+To search this data, we will use the pattern `^\w{42}$`, which contains exactly
+one hit in the file and has no literals. Having no literals is important,
+because it ensures that the regex engine won't use literal optimizations to
+speed up the search. In other words, it lets us reason coherently about the
+actual task that the regex engine is performing.
+
+Let's now walk through a few examples in light of the information above. First,
+let's consider the default search using ripgrep's default regex engine and
+then the same search with PCRE2:
+
+```
+$ time rg '^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.783s
+user    0m1.731s
+sys     0m0.051s
+
+$ time rg -P '^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m2.458s
+user    0m2.419s
+sys     0m0.038s
+```
+
+In this particular example, both pattern searches are using a Unicode aware
+`\w` character class and both are counting lines in order to report line
+numbers. The key difference here is that the first search will not search
+line by line, but the second one will. We can observe which strategy ripgrep
+uses by passing the `--trace` flag:
+
+```
+$ rg '^\w{42}$' subtitles2016-sample --trace
+[... snip ...]
+TRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:622: Some("subtitles2016-sample"): searching via memory map
+TRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:712: slice reader: searching via slice-by-line strategy
+TRACE|grep_searcher::searcher::core|grep-searcher/src/searcher/core.rs:61: searcher core: will use fast line searcher
+[... snip ...]
+
+$ rg -P '^\w{42}$' subtitles2016-sample --trace
+[... snip ...]
+TRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:622: Some("subtitles2016-sample"): searching via memory map
+TRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:705: slice reader: needs transcoding, using generic reader
+TRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:685: generic reader: searching via roll buffer strategy
+TRACE|grep_searcher::searcher::core|grep-searcher/src/searcher/core.rs:63: searcher core: will use slow line searcher
+[... snip ...]
+```
+
+The first says it is using the "fast line searcher" where as the latter says
+it is using the "slow line searcher." The latter also shows that we are
+decoding the contents of the file, which also impacts performance.
+
+Interestingly, in this case, the pattern does not match a `\n` and the file
+we're searching is valid UTF-8, so neither the slow line-by-line search
+strategy nor the decoding are necessary. We could fix the former issue with
+better PCRE2 introspection APIs. We can actually fix the latter issue with
+ripgrep's `--no-encoding` flag, which prevents the automatic UTF-8 decoding,
+but will enable PCRE2's own UTF-8 validity checking. Unfortunately, it's slower
+in my build of ripgrep:
+
+```
+$ time rg -P '^\w{42}$' subtitles2016-sample --no-encoding
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m3.074s
+user    0m3.021s
+sys     0m0.051s
+```
+
+(Tip: use the `--trace` flag to verify that no decoding in ripgrep is
+happening.)
+
+A possible reason why PCRE2's UTF-8 checking is slower is because it might
+not be better than the highly optimized UTF-8 checking routines found in the
+[`encoding_rs`](https://github.com/hsivonen/encoding_rs) library, which is what
+ripgrep uses for UTF-8 decoding. Moreover, my build of ripgrep enables
+`encoding_rs`'s SIMD optimizations, which may be in play here.
+
+Also, note that using the `--no-encoding` flag can cause PCRE2 to report
+invalid UTF-8 errors, which causes ripgrep to stop searching the file:
+
+```
+$ cat invalid-utf8
+foobar
+
+$ xxd invalid-utf8
+00000000: 666f 6fff 6261 720a                      foo.bar.
+
+$ rg foo invalid-utf8
+1:foobar
+
+$ rg -P foo invalid-utf8
+1:foo�bar
+
+$ rg -P foo invalid-utf8 --no-encoding
+invalid-utf8: PCRE2: error matching: UTF-8 error: illegal byte (0xfe or 0xff)
+```
+
+All right, so at this point, you might think that we could remove the penalty
+for line-by-line searching by enabling multiline search. After all, our
+particular pattern can't match across multiple lines anyway, so we'll still get
+the results we want. Let's try it:
+
+```
+$ time rg -U '^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.803s
+user    0m1.748s
+sys     0m0.054s
+
+$ time rg -P -U '^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m2.962s
+user    0m2.246s
+sys     0m0.713s
+```
+
+Search times remain the same with the default regex engine, but the PCRE2
+search gets _slower_. What happened? The secrets can be revealed with the
+`--trace` flag once again. In the former case, ripgrep actually detects that
+the pattern can't match across multiple lines, and so will fall back to the
+"fast line search" strategy as with our search without `-U`.
+
+However, for PCRE2, things are much worse. Namely, since Unicode mode is still
+enabled, ripgrep is still going to decode UTF-8 to ensure that it hands only
+valid UTF-8 to PCRE2. Unfortunately, one key downside of multiline search is
+that ripgrep cannot do it incrementally. Since matches can be arbitrarily long,
+ripgrep actually needs the entire file in memory at once. Normally, we can use
+a memory map for this, but because we need to UTF-8 decode the file before
+searching it, ripgrep winds up reading the entire contents of the file on to
+the heap before executing a search. Owch.
+
+OK, so Unicode is killing us here. The file we're searching is _mostly_ ASCII,
+so maybe we're OK with missing some data. (Try `rg '[\w--\p{ascii}]'` to see
+non-ASCII word characters that an ASCII-only `\w` character class would miss.)
+We can disable Unicode in both searches, but this is done differently depending
+on the regex engine we use:
+
+```
+$ time rg '(?-u)^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.714s
+user    0m1.669s
+sys     0m0.044s
+
+[andrew@Cheetah 2016] time rg -P '^\w{42}$' subtitles2016-sample --no-pcre2-unicode
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.997s
+user    0m1.958s
+sys     0m0.037s
+```
+
+For the most part, ripgrep's default regex engine performs about the same.
+PCRE2 does improve a little bit, and is now almost as fast as the default
+regex engine. If you look at the output of `--trace`, you'll see that ripgrep
+will no longer perform UTF-8 decoding, but it does still use the slow
+line-by-line searcher.
+
+At this point, we can combine all of our insights above: let's try to get off
+of the slow line-by-line searcher by enabling multiline mode, and let's stop
+UTF-8 decoding by disabling Unicode support:
+
+```
+$ time rg -U '(?-u)^\w{42}$' subtitles2016-sample
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.714s
+user    0m1.655s
+sys     0m0.058s
+
+$ time rg -P -U '^\w{42}$' subtitles2016-sample --no-pcre2-unicode
+21225780:EverymajordevelopmentinthehistoryofAmerica
+
+real    0m1.121s
+user    0m1.071s
+sys     0m0.048s
+```
+
+Ah, there's PCRE2's JIT shining! ripgrep's default regex engine once again
+remains about the same, but PCRE2 no longer needs to search line-by-line and it
+no longer needs to do any kind of UTF-8 checks. This allows the file to get
+memory mapped and passed right through PCRE2's JIT at impressive speeds. (As
+a brief and interesting historical note, the configuration of "memory map +
+multiline + no-Unicode" is exactly the configuration used by The Silver
+Searcher. This analysis perhaps sheds some reasoning as to why it converged on
+that specific setting!)
+
+In summary, if you want PCRE2 to go as fast as possible and you don't care
+about Unicode and you don't care about matches possibly spanning across
+multiple lines, then enable multiline mode with `-U` and disable PCRE2's
+Unicode support with the `--no-pcre2-unicode` flag.
 
 
 <h3 name="rg-other-cmd">
