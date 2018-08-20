@@ -683,9 +683,9 @@ about Unicode and you don't care about matches possibly spanning across
 multiple lines, then enable multiline mode with `-U` and disable PCRE2's
 Unicode support with the `--no-pcre2-unicode` flag.
 
-Caveat emptor: This author is not a PCRE2 exit, so there may be APIs that can
-improve performance. Similarly, there may be alternative designs for a
-searching tool that are more amenable to how PCRE2 works.
+Caveat emptor: This author is not a PCRE2 expert, so there may be APIs that can
+improve performance that the author missed. Similarly, there may be alternative
+designs for a searching tool that are more amenable to how PCRE2 works.
 
 
 <h3 name="rg-other-cmd">
