@@ -675,13 +675,17 @@ no longer needs to do any kind of UTF-8 checks. This allows the file to get
 memory mapped and passed right through PCRE2's JIT at impressive speeds. (As
 a brief and interesting historical note, the configuration of "memory map +
 multiline + no-Unicode" is exactly the configuration used by The Silver
-Searcher. This analysis perhaps sheds some reasoning as to why it converged on
-that specific setting!)
+Searcher. This analysis perhaps sheds some reasoning as to why that
+configuration is useful!)
 
 In summary, if you want PCRE2 to go as fast as possible and you don't care
 about Unicode and you don't care about matches possibly spanning across
 multiple lines, then enable multiline mode with `-U` and disable PCRE2's
 Unicode support with the `--no-pcre2-unicode` flag.
+
+Caveat emptor: This author is not a PCRE2 exit, so there may be APIs that can
+improve performance. Similarly, there may be alternative designs for a
+searching tool that are more amenable to how PCRE2 works.
 
 
 <h3 name="rg-other-cmd">
