@@ -385,14 +385,15 @@ $ cargo build --release --features 'pcre2'
 ```
 
 (Tip: use `--features 'pcre2 simd-accel avx-accel'` to also include compile
-time SIMD optimizations.)
+time SIMD optimizations, which will only work with a nightly compiler.)
 
-Enabling the PCRE2 feature will attempt to automatically find and link with
-your system's PCRE2 library via `pkg-config`. If one doesn't exist, then
-ripgrep will build PCRE2 from source using your system's C compiler and then
-statically link it into the final executable. Static linking can be forced even
-when there is an available PCRE2 system library by either building ripgrep with
-the MUSL target or by setting `PCRE2_SYS_STATIC=1`.
+Enabling the PCRE2 feature works with a stable Rust compiler and will
+attempt to automatically find and link with your system's PCRE2 library via
+`pkg-config`. If one doesn't exist, then ripgrep will build PCRE2 from source
+using your system's C compiler and then statically link it into the final
+executable. Static linking can be forced even when there is an available PCRE2
+system library by either building ripgrep with the MUSL target or by setting
+`PCRE2_SYS_STATIC=1`.
 
 ripgrep can be built with the MUSL target on Linux by first installing the MUSL
 library on your system (consult your friendly neighborhood package manager).
