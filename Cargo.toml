@@ -61,9 +61,8 @@ version = "2.32.0"
 default-features = false
 features = ["suggestions"]
 
-[target.'cfg(windows)'.dependencies.winapi]
-version = "0.3"
-features = ["std", "fileapi", "winnt"]
+[target.'cfg(windows)'.dependencies.winapi-util]
+version = "0.1.1"
 
 [build-dependencies]
 lazy_static = "1"

@@ -15,7 +15,7 @@ extern crate same_file;
 extern crate serde_json;
 extern crate termcolor;
 #[cfg(windows)]
-extern crate winapi;
+extern crate winapi_util;
 
 use std::io;
 use std::process;

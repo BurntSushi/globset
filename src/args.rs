@@ -1517,17 +1517,9 @@ fn stdin_is_readable() -> bool {
 /// Returns true if and only if stdin is deemed searchable.
 #[cfg(windows)]
 fn stdin_is_readable() -> bool {
-    use std::os::windows::io::AsRawHandle;
-    use winapi::um::fileapi::GetFileType;
-    use winapi::um::winbase::{FILE_TYPE_DISK, FILE_TYPE_PIPE};
+    use winapi_util as winutil;
 
-    let handle = match Handle::stdin() {
-        Err(_) => return false,
-        Ok(handle) => handle,
-    };
-    let raw_handle = handle.as_raw_handle();
-    // SAFETY: As far as I can tell, it's not possible to use GetFileType in
-    // a way that violates safety. We give it a handle and we get an integer.
-    let ft = unsafe { GetFileType(raw_handle) };
-    ft == FILE_TYPE_DISK || ft == FILE_TYPE_PIPE
+    winutil::file::typ(winutil::HandleRef::stdin())
+        .map(|t| t.is_disk() || t.is_pipe())
+        .unwrap_or(false)
 }
