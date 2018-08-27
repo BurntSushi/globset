@@ -71,7 +71,7 @@ _rg() {
     $no'--no-encoding[use default text encoding]'
 
     + file # File-input options
-    '*'{-f+,--file=}'[specify file containing patterns to search for]: :_files'
+    '(1)*'{-f+,--file=}'[specify file containing patterns to search for]: :_files'
 
     + '(file-match)' # Files with/without match options
     '(stats)'{-l,--files-with-matches}'[only show names of files with matches]'
