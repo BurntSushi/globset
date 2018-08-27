@@ -635,7 +635,7 @@ real    0m1.714s
 user    0m1.669s
 sys     0m0.044s
 
-[andrew@Cheetah 2016] time rg -P '^\w{42}$' subtitles2016-sample --no-pcre2-unicode
+$ time rg -P '^\w{42}$' subtitles2016-sample --no-pcre2-unicode
 21225780:EverymajordevelopmentinthehistoryofAmerica
 
 real    0m1.997s

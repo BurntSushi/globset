@@ -23,7 +23,7 @@ Please see the [CHANGELOG](CHANGELOG.md) for a release history.
 * [Installation](#installation)
 * [User Guide](GUIDE.md)
 * [Frequently Asked Questions](FAQ.md)
-* [Regex syntax](https://docs.rs/regex/0.2.5/regex/#syntax)
+* [Regex syntax](https://docs.rs/regex/1/regex/#syntax)
 * [Configuration files](GUIDE.md#configuration-file)
 * [Shell completions](FAQ.md#complete)
 * [Building](#building)
@@ -103,6 +103,10 @@ increases the times to `2.640s` for ripgrep and `10.277s` for GNU grep.
   of search results, searching multiple patterns, highlighting matches with
   color and full Unicode support. Unlike GNU grep, ripgrep stays fast while
   supporting Unicode (which is always on).
+* ripgrep has optional support for switching its regex engine to use PCRE2.
+  Among other things, this makes it possible to use look-around and
+  backreferences in your patterns, which are supported in ripgrep's default
+  regex engine. PCRE2 support is enabled with `-P`.
 * ripgrep supports searching files in text encodings other than UTF-8, such
   as UTF-16, latin-1, GBK, EUC-JP, Shift_JIS and more. (Some support for
   automatically detecting UTF-16 is provided. Other text encodings must be
@@ -114,7 +118,7 @@ increases the times to `2.640s` for ripgrep and `10.277s` for GNU grep.
   detection and so on.
 
 In other words, use ripgrep if you like speed, filtering by default, fewer
-bugs, and Unicode support.
+bugs and Unicode support.
 
 
 ### Why shouldn't I use ripgrep?
@@ -159,7 +163,7 @@ Summarizing, ripgrep is fast because:
   latter is better for large directories. ripgrep chooses the best searching
   strategy for you automatically.
 * Applies your ignore patterns in `.gitignore` files using a
-  [`RegexSet`](https://docs.rs/regex/1.0.0/regex/struct.RegexSet.html).
+  [`RegexSet`](https://docs.rs/regex/1/regex/struct.RegexSet.html).
   That means a single file path can be matched against multiple glob patterns
   simultaneously.
 * It uses a lock-free parallel recursive directory iterator, courtesy of

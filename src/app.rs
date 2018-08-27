@@ -685,9 +685,15 @@ fn flag_byte_offset(args: &mut Vec<RGArg>) {
     const SHORT: &str =
         "Print the 0-based byte offset for each matching line.";
     const LONG: &str = long!("\
-Print the 0-based byte offset within the input file
-before each line of output. If -o (--only-matching) is
-specified, print the offset of the matching part itself.
+Print the 0-based byte offset within the input file before each line of output.
+If -o (--only-matching) is specified, print the offset of the matching part
+itself.
+
+If ripgrep does transcoding, then the byte offset is in terms of the the result
+of transcoding and not the original data. This applies similarly to another
+transformation on the source, such as decompression or a --pre filter. Note
+that when the PCRE2 regex engine is used, then UTF-8 transcoding is done by
+default.
 ");
     let arg = RGArg::switch("byte-offset").short("b")
         .help(SHORT).long_help(LONG);
