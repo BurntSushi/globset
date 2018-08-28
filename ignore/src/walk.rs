@@ -455,6 +455,7 @@ pub struct WalkBuilder {
     same_file_system: bool,
     sorter: Option<Sorter>,
     threads: usize,
+    skip: Option<Arc<Handle>>,
 }
 
 #[derive(Clone)]
@@ -472,6 +473,7 @@ impl fmt::Debug for WalkBuilder {
             .field("max_filesize", &self.max_filesize)
             .field("follow_links", &self.follow_links)
             .field("threads", &self.threads)
+            .field("skip", &self.skip)
             .finish()
     }
 }
@@ -493,6 +495,7 @@ impl WalkBuilder {
             same_file_system: false,
             sorter: None,
             threads: 0,
+            skip: None,
         }
     }
 
@@ -535,6 +538,7 @@ impl WalkBuilder {
             ig_root: ig_root.clone(),
             ig: ig_root.clone(),
             max_filesize: self.max_filesize,
+            skip: self.skip.clone(),
         }
     }
 
@@ -552,6 +556,7 @@ impl WalkBuilder {
             follow_links: self.follow_links,
             same_file_system: self.same_file_system,
             threads: self.threads,
+            skip: self.skip.clone(),
         }
     }
 
@@ -792,6 +797,26 @@ impl WalkBuilder {
         self.same_file_system = yes;
         self
     }
+
+    /// Do not yield directory entries that are believed to correspond to
+    /// stdout.
+    ///
+    /// This is useful when a command is invoked via shell redirection to a
+    /// file that is also being read. For example, `grep -r foo ./ > results`
+    /// might end up trying to search `results` even though it is also writing
+    /// to it, which could cause an unbounded feedback loop. Setting this
+    /// option prevents this from happening by skipping over the `results`
+    /// file.
+    ///
+    /// This is disabled by default.
+    pub fn skip_stdout(&mut self, yes: bool) -> &mut WalkBuilder {
+        if yes {
+            self.skip = stdout_handle().map(Arc::new);
+        } else {
+            self.skip = None;
+        }
+        self
+    }
 }
 
 /// Walk is a recursive directory iterator over file paths in one or more
@@ -806,6 +831,7 @@ pub struct Walk {
     ig_root: Ignore,
     ig: Ignore,
     max_filesize: Option<u64>,
+    skip: Option<Arc<Handle>>,
 }
 
 impl Walk {
@@ -818,12 +844,17 @@ impl Walk {
         WalkBuilder::new(path).build()
     }
 
-    fn skip_entry(&self, ent: &walkdir::DirEntry) -> bool {
+    fn skip_entry(&self, ent: &DirEntry) -> Result<bool, Error> {
         if ent.depth() == 0 {
-            return false;
+            return Ok(false);
         }
 
-        let is_dir = ent.file_type().is_dir();
+        if let Some(ref stdout) = self.skip {
+            if path_equals(ent, stdout)? {
+                return Ok(true);
+            }
+        }
+        let is_dir = ent.file_type().map_or(false, |ft| ft.is_dir());
         let max_size = self.max_filesize;
         let should_skip_path = skip_path(&self.ig, ent.path(), is_dir);
         let should_skip_filesize = if !is_dir && max_size.is_some() {
@@ -832,7 +863,7 @@ impl Walk {
             false
         };
 
-        should_skip_path || should_skip_filesize
+        Ok(should_skip_path || should_skip_filesize)
     }
 }
 
@@ -874,7 +905,12 @@ impl Iterator for Walk {
                     self.ig = self.ig.parent().unwrap();
                 }
                 Ok(WalkEvent::Dir(ent)) => {
-                    if self.skip_entry(&ent) {
+                    let mut ent = DirEntry::new_walkdir(ent, None);
+                    let should_skip = match self.skip_entry(&ent) {
+                        Err(err) => return Some(Err(err)),
+                        Ok(should_skip) => should_skip,
+                    };
+                    if should_skip {
                         self.it.as_mut().unwrap().it.skip_current_dir();
                         // Still need to push this on the stack because
                         // we'll get a WalkEvent::Exit event for this dir.
@@ -885,13 +921,19 @@ impl Iterator for Walk {
                     }
                     let (igtmp, err) = self.ig.add_child(ent.path());
                     self.ig = igtmp;
-                    return Some(Ok(DirEntry::new_walkdir(ent, err)));
+                    ent.err = err;
+                    return Some(Ok(ent));
                 }
                 Ok(WalkEvent::File(ent)) => {
-                    if self.skip_entry(&ent) {
+                    let ent = DirEntry::new_walkdir(ent, None);
+                    let should_skip = match self.skip_entry(&ent) {
+                        Err(err) => return Some(Err(err)),
+                        Ok(should_skip) => should_skip,
+                    };
+                    if should_skip {
                         continue;
                     }
-                    return Some(Ok(DirEntry::new_walkdir(ent, None)));
+                    return Some(Ok(ent));
                 }
             }
         }
@@ -993,6 +1035,7 @@ pub struct WalkParallel {
     follow_links: bool,
     same_file_system: bool,
     threads: usize,
+    skip: Option<Arc<Handle>>,
 }
 
 impl WalkParallel {
@@ -1080,6 +1123,7 @@ impl WalkParallel {
                 max_depth: self.max_depth,
                 max_filesize: self.max_filesize,
                 follow_links: self.follow_links,
+                skip: self.skip.clone(),
             };
             handles.push(thread::spawn(|| worker.run()));
         }
@@ -1208,6 +1252,9 @@ struct Worker {
     /// Whether to follow symbolic links or not. When this is enabled, loop
     /// detection is performed.
     follow_links: bool,
+    /// A file handle to skip, currently is either `None` or stdout, if it's
+    /// a file and it has been requested to skip files identical to stdout.
+    skip: Option<Arc<Handle>>,
 }
 
 impl Worker {
@@ -1333,6 +1380,15 @@ impl Worker {
                 if let Err(err) = check_symlink_loop(ig, dent.path(), depth) {
                     return (self.f)(Err(err));
                 }
+            }
+        }
+        if let Some(ref stdout) = self.skip {
+            let is_stdout = match path_equals(&dent, stdout) {
+                Ok(is_stdout) => is_stdout,
+                Err(err) => return (self.f)(Err(err)),
+            };
+            if is_stdout {
+                return WalkState::Continue;
             }
         }
         let is_dir = dent.is_dir();
@@ -1539,6 +1595,52 @@ fn skip_path(
     } else {
         false
     }
+}
+
+/// Returns a handle to stdout for filtering search.
+///
+/// A handle is returned if and only if stdout is being redirected to a file.
+/// The handle returned corresponds to that file.
+///
+/// This can be used to ensure that we do not attempt to search a file that we
+/// may also be writing to.
+fn stdout_handle() -> Option<Handle> {
+    let h = match Handle::stdout() {
+        Err(_) => return None,
+        Ok(h) => h,
+    };
+    let md = match h.as_file().metadata() {
+        Err(_) => return None,
+        Ok(md) => md,
+    };
+    if !md.is_file() {
+        return None;
+    }
+    Some(h)
+}
+
+/// Returns true if and only if the given directory entry is believed to be
+/// equivalent to the given handle. If there was a problem querying the path
+/// for information to determine equality, then that error is returned.
+fn path_equals(dent: &DirEntry, handle: &Handle) -> Result<bool, Error> {
+    #[cfg(unix)]
+    fn never_equal(dent: &DirEntry, handle: &Handle) -> bool {
+        dent.ino() != Some(handle.ino())
+    }
+
+    #[cfg(not(unix))]
+    fn never_equal(_: &DirEntry, _: &Handle) -> bool {
+        false
+    }
+
+    // If we know for sure that these two things aren't equal, then avoid
+    // the costly extra stat call to determine equality.
+    if dent.is_stdin() || never_equal(dent, handle) {
+        return Ok(false);
+    }
+    Handle::from_path(dent.path())
+        .map(|h| &h == handle)
+        .map_err(|err| Error::Io(err).with_path(dent.path()))
 }
 
 /// Returns true if and only if the given path is on the same device as the
