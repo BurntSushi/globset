@@ -308,9 +308,7 @@ impl Args {
     /// file or a stream such as stdin.
     pub fn subject_builder(&self) -> SubjectBuilder {
         let mut builder = SubjectBuilder::new();
-        builder
-            .strip_dot_prefix(self.using_default_path())
-            .skip(self.matches().stdout_handle());
+        builder.strip_dot_prefix(self.using_default_path());
         builder
     }
 
@@ -779,6 +777,7 @@ impl ArgMatches {
             .max_filesize(self.max_file_size()?)
             .threads(self.threads()?)
             .same_file_system(self.is_present("one-file-system"))
+            .skip_stdout(true)
             .overrides(self.overrides()?)
             .types(self.types()?)
             .hidden(!self.hidden())
@@ -1373,28 +1372,6 @@ impl ArgMatches {
     /// enabled implicity via the output format, e.g., for JSON Lines.
     fn stats(&self) -> bool {
         self.output_kind() == OutputKind::JSON || self.is_present("stats")
-    }
-
-    /// Returns a handle to stdout for filtering search.
-    ///
-    /// A handle is returned if and only if ripgrep's stdout is being
-    /// redirected to a file. The handle returned corresponds to that file.
-    ///
-    /// This can be used to ensure that we do not attempt to search a file
-    /// that ripgrep is writing to.
-    fn stdout_handle(&self) -> Option<Handle> {
-        let h = match Handle::stdout() {
-            Err(_) => return None,
-            Ok(h) => h,
-        };
-        let md = match h.as_file().metadata() {
-            Err(_) => return None,
-            Ok(md) => md,
-        };
-        if !md.is_file() {
-            return None;
-        }
-        Some(h)
     }
 
     /// When the output format is `Summary`, this returns the type of summary

@@ -1,26 +1,17 @@
-use std::io;
 use std::path::Path;
-use std::sync::Arc;
 
 use ignore::{self, DirEntry};
-use same_file::Handle;
 
 /// A configuration for describing how subjects should be built.
 #[derive(Clone, Debug)]
 struct Config {
-    skip: Option<Arc<Handle>>,
     strip_dot_prefix: bool,
-    separator: Option<u8>,
-    terminator: Option<u8>,
 }
 
 impl Default for Config {
     fn default() -> Config {
         Config {
-            skip: None,
             strip_dot_prefix: false,
-            separator: None,
-            terminator: None,
         }
     }
 }
@@ -71,26 +62,6 @@ impl SubjectBuilder {
         if subj.dent.is_stdin() {
             return Some(subj);
         }
-        // If we're supposed to skip a particular file, then skip it.
-        if let Some(ref handle) = self.config.skip {
-            match subj.equals(handle) {
-                Ok(false) => {} // fallthrough
-                Ok(true) => {
-                    debug!(
-                        "ignoring {}: (probably same file as stdout)",
-                        subj.dent.path().display()
-                    );
-                    return None;
-                }
-                Err(err) => {
-                    debug!(
-                        "ignoring {}: got error: {}",
-                        subj.dent.path().display(), err
-                    );
-                    return None;
-                }
-            }
-        }
         // If this subject has a depth of 0, then it was provided explicitly
         // by an end user (or via a shell glob). In this case, we always want
         // to search it if it even smells like a file (e.g., a symlink).
@@ -117,22 +88,6 @@ impl SubjectBuilder {
             );
         }
         None
-    }
-
-    /// When provided, subjects that represent the same file as the handle
-    /// given will be skipped.
-    ///
-    /// Typically, it is useful to pass a handle referring to stdout, such
-    /// that the file being written to isn't searched, which can lead to
-    /// an unbounded feedback mechanism.
-    ///
-    /// Only one handle to skip can be provided.
-    pub fn skip(
-        &mut self,
-        handle: Option<Handle>,
-    ) -> &mut SubjectBuilder {
-        self.config.skip = handle.map(Arc::new);
-        self
     }
 
     /// When enabled, if the subject's file path starts with `./` then it is
@@ -179,27 +134,5 @@ impl Subject {
     /// Returns true if and only if this subject points to a file.
     fn is_file(&self) -> bool {
         self.dent.file_type().map_or(false, |ft| ft.is_file())
-    }
-
-    /// Returns true if and only if this subject is believed to be equivalent
-    /// to the given handle. If there was a problem querying this subject for
-    /// information to determine equality, then that error is returned.
-    fn equals(&self, handle: &Handle) -> io::Result<bool> {
-        #[cfg(unix)]
-        fn never_equal(dent: &DirEntry, handle: &Handle) -> bool {
-            dent.ino() != Some(handle.ino())
-        }
-
-        #[cfg(not(unix))]
-        fn never_equal(_: &DirEntry, _: &Handle) -> bool {
-            false
-        }
-
-        // If we know for sure that these two things aren't equal, then avoid
-        // the costly extra stat call to determine equality.
-        if self.dent.is_stdin() || never_equal(&self.dent, handle) {
-            return Ok(false);
-        }
-        Handle::from_path(self.path()).map(|h| &h == handle)
     }
 }
