@@ -17,22 +17,26 @@ format.
   minimum supported version.
 * The match semantics of `-w/--word-regexp` have changed slightly. They used
   to be `\b(?:<your pattern>)\b`, but now it's
-  `(?:^|\W)(?:<your pattern>)(?:$|\W)`.
+  `(?:^|\W)(?:<your pattern>)(?:$|\W)`. This matches the behavior of GNU grep
+  and is believe to be closer to the intended semantics of the flag.
   See [#389](https://github.com/BurntSushi/ripgrep/issues/389) for more
   details.
 
 Feature enhancements:
 
 * [FEATURE #162](https://github.com/BurntSushi/ripgrep/issues/162):
-  libripgrep is now a thing, composed of the following crates:
-  `grep`, `grep-matcher`, `grep-pcre2`, `grep-printer`, `grep-regex` and
-  `grep-searcher`.
+  libripgrep is now a thing. The primary crate is
+  [`grep`](https://docs.rs/grep).
 * [FEATURE #176](https://github.com/BurntSushi/ripgrep/issues/176):
   Add `-U/--multiline` flag that permits matching over multiple lines.
 * [FEATURE #188](https://github.com/BurntSushi/ripgrep/issues/188):
   Add `-P/--pcre2` flag that gives support for look-around and backreferences.
 * [FEATURE #244](https://github.com/BurntSushi/ripgrep/issues/244):
   Add `--json` flag that prints results in a JSON Lines format.
+* [FEATURE #321](https://github.com/BurntSushi/ripgrep/issues/321):
+  Add `--one-file-system` flag to skip directories on different file systems.
+* [FEATURE #404](https://github.com/BurntSushi/ripgrep/issues/404):
+  Add `--sort` and `--sortr` flag for more sorting. Deprecate `--sort-files`.
 * [FEATURE #416](https://github.com/BurntSushi/ripgrep/issues/416):
   Add `--crlf` flag to permit `$` to work with carriage returns on Windows.
 * [FEATURE #917](https://github.com/BurntSushi/ripgrep/issues/917):
@@ -70,6 +74,8 @@ Bug fixes:
   Fixes bug in `ignore` crate where first path was always treated as a symlink.
 * [BUG #1013](https://github.com/BurntSushi/ripgrep/issues/1013):
   Add compile time and runtime CPU features to `--version` output.
+* [BUG #1028](https://github.com/BurntSushi/ripgrep/pull/1028):
+  Don't complete bare pattern after `-f` in zsh.
 
 
 0.9.0 (2018-08-03)
