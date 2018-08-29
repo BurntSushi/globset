@@ -18,9 +18,8 @@ format.
 * The match semantics of `-w/--word-regexp` have changed slightly. They used
   to be `\b(?:<your pattern>)\b`, but now it's
   `(?:^|\W)(?:<your pattern>)(?:$|\W)`. This matches the behavior of GNU grep
-  and is believe to be closer to the intended semantics of the flag.
-  See [#389](https://github.com/BurntSushi/ripgrep/issues/389) for more
-  details.
+  and is believed to be closer to the intended semantics of the flag. See
+  [#389](https://github.com/BurntSushi/ripgrep/issues/389) for more details.
 
 Feature enhancements:
 
