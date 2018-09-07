@@ -246,6 +246,53 @@ impl<'a, S: Sink> Sink for &'a mut S {
     }
 }
 
+impl<S: Sink + ?Sized> Sink for Box<S> {
+    type Error = S::Error;
+
+    #[inline]
+    fn matched(
+        &mut self,
+        searcher: &Searcher,
+        mat: &SinkMatch,
+    ) -> Result<bool, S::Error> {
+        (**self).matched(searcher, mat)
+    }
+
+    #[inline]
+    fn context(
+        &mut self,
+        searcher: &Searcher,
+        context: &SinkContext,
+    ) -> Result<bool, S::Error> {
+        (**self).context(searcher, context)
+    }
+
+    #[inline]
+    fn context_break(
+        &mut self,
+        searcher: &Searcher,
+    ) -> Result<bool, S::Error> {
+        (**self).context_break(searcher)
+    }
+
+    #[inline]
+    fn begin(
+        &mut self,
+        searcher: &Searcher,
+    ) -> Result<bool, S::Error> {
+        (**self).begin(searcher)
+    }
+
+    #[inline]
+    fn finish(
+        &mut self,
+        searcher: &Searcher,
+        sink_finish: &SinkFinish,
+    ) -> Result<(), S::Error> {
+        (**self).finish(searcher, sink_finish)
+    }
+}
+
 /// Summary data reported at the end of a search.
 ///
 /// This reports data such as the total number of bytes searched and the
