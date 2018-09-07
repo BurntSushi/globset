@@ -45,11 +45,10 @@ install:
   - rustc -V
   - cargo -V
 
-# ???
+# Hack to work around a harmless warning in Appveyor builds?
 build: false
 
 # Equivalent to Travis' `script` phase
-# TODO modify this phase as you see fit
 test_script:
   - cargo test --verbose --all --features pcre2
 
@@ -60,7 +59,7 @@ before_deploy:
   - copy target\release\rg.exe staging
   - ps: copy target\release\build\ripgrep-*\out\_rg.ps1 staging
   - cd staging
-    # release zipfile will look like 'rust-everywhere-v1.2.3-x86_64-pc-windows-msvc'
+  # release zipfile will look like 'ripgrep-1.2.3-x86_64-pc-windows-msvc'
   - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *
   - appveyor PushArtifact ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip
 
@@ -73,17 +72,10 @@ deploy:
   provider: GitHub
   # deploy when a new tag is pushed and only on the stable channel
   on:
-    # channel to use to produce the release artifacts
-    # NOTE make sure you only release *once* per target
-    # TODO you may want to pick a different channel
     CHANNEL: stable
-    appveyor_repo_tag: true
+    APPVEYOR_REPO_TAG: true
 
 branches:
   only:
-    - /\d+\.\d+\.\d+/
+    - /^\d+\.\d+\.\d+$/
     - master
-    # - appveyor
-    # - /\d+\.\d+\.\d+/
-  # except:
-    # - master
