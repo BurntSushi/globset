@@ -114,39 +114,6 @@ impl<'a> Data<'a> {
         // so we do the easy thing for now.
         Data::Text { text: path.to_string_lossy() }
     }
-
-    // Unused deserialization routines.
-
-    /*
-    fn into_bytes(self) -> Vec<u8> {
-        match self {
-            Data::Text { text } => text.into_bytes(),
-            Data::Bytes { bytes } => bytes,
-        }
-    }
-
-    #[cfg(unix)]
-    fn into_path_buf(&self) -> PathBuf {
-        use std::os::unix::ffi::OsStrExt;
-
-        match self {
-            Data::Text { text } => PathBuf::from(text),
-            Data::Bytes { bytes } => {
-                PathBuf::from(OsStr::from_bytes(bytes))
-            }
-        }
-    }
-
-    #[cfg(not(unix))]
-    fn into_path_buf(&self) -> PathBuf {
-        match self {
-            Data::Text { text } => PathBuf::from(text),
-            Data::Bytes { bytes } => {
-                PathBuf::from(String::from_utf8_lossy(&bytes).into_owned())
-            }
-        }
-    }
-    */
 }
 
 fn to_base64<T, S>(
@@ -178,36 +145,3 @@ where P: AsRef<Path>,
 {
     path.as_ref().map(|p| Data::from_path(p.as_ref())).serialize(ser)
 }
-
-// The following are some deserialization helpers, in case we decide to support
-// deserialization of the above types.
-
-/*
-fn from_base64<'de, D>(
-    de: D,
-) -> Result<Vec<u8>, D::Error>
-where D: Deserializer<'de>
-{
-    let encoded = String::deserialize(de)?;
-    let decoded = base64::decode(encoded.as_bytes())
-        .map_err(D::Error::custom)?;
-    Ok(decoded)
-}
-
-fn deser_bytes<'de, D>(
-    de: D,
-) -> Result<Vec<u8>, D::Error>
-where D: Deserializer<'de>
-{
-    Data::deserialize(de).map(|datum| datum.into_bytes())
-}
-
-fn deser_path<'de, D>(
-    de: D,
-) -> Result<Option<PathBuf>, D::Error>
-where D: Deserializer<'de>
-{
-    Option::<Data>::deserialize(de)
-        .map(|opt| opt.map(|datum| datum.into_path_buf()))
-}
-*/

@@ -74,13 +74,10 @@ fn example() -> Result<(), Box<Error>> {
     let mut matches: Vec<(u64, String)> = vec![];
     Searcher::new().search_slice(&matcher, SHERLOCK, UTF8(|lnum, line| {
         // We are guaranteed to find a match, so the unwrap is OK.
-        eprintln!("LINE: {:?}", line);
         let mymatch = matcher.find(line.as_bytes())?.unwrap();
         matches.push((lnum, line[mymatch].to_string()));
         Ok(true)
     }))?;
-
-    eprintln!("MATCHES: {:?}", matches);
 
     assert_eq!(matches.len(), 2);
     assert_eq!(
