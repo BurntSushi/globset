@@ -135,8 +135,8 @@ or more of the following:
 * You need a portable and ubiquitous tool. While ripgrep works on Windows,
   macOS and Linux, it is not ubiquitous and it does not conform to any
   standard such as POSIX. The best tool for this job is good old grep.
-* There still exists some other minor feature (or bug) found in another tool
-  that isn't in ripgrep.
+* There still exists some other feature (or bug) not listed in this README that
+  you rely on that's in another tool that isn't in ripgrep.
 * There is a performance edge case where ripgrep doesn't do well where another
   tool does do well. (Please file a bug report!)
 * ripgrep isn't possible to install on your machine or isn't available for your
@@ -409,7 +409,10 @@ $ rustup target add x86_64-unknown-linux-musl
 $ cargo build --release --target x86_64-unknown-linux-musl
 ```
 
-Applying the `--features` flag from above works as expected.
+Applying the `--features` flag from above works as expected. If you want to
+build a static executable with MUSL and with PCRE2, then you will need to have
+`musl-gcc` installed, which might be in a separate package from the actual
+MUSL library, depending on your Linux distribution.
 
 
 ### Running tests
