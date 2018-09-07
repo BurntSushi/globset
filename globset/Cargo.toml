@@ -1,6 +1,6 @@
 [package]
 name = "globset"
-version = "0.4.1"  #:version
+version = "0.4.2"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 Cross platform single glob and glob set matching. Glob set matching is the
@@ -19,14 +19,14 @@ name = "globset"
 bench = false
 
 [dependencies]
-aho-corasick = "0.6.0"
-fnv = "1.0"
-log = "0.4"
-memchr = "2"
-regex = "1"
+aho-corasick = "0.6.8"
+fnv = "1.0.6"
+log = "0.4.5"
+memchr = "2.0.2"
+regex = "1.0.5"
 
 [dev-dependencies]
-glob = "0.2"
+glob = "0.2.11"
 
 [features]
 simd-accel = []
