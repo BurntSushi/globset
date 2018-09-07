@@ -1396,7 +1396,7 @@ impl<'a, M: Matcher, W: WriteColor> StandardImpl<'a, M, W> {
     }
 
     fn has_line_terminator(&self, buf: &[u8]) -> bool {
-        buf.last() == Some(&self.searcher.line_terminator().as_byte())
+        self.searcher.line_terminator().is_suffix(buf)
     }
 
     fn is_context(&self) -> bool {

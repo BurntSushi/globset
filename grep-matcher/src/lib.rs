@@ -266,6 +266,16 @@ impl LineTerminator {
             LineTerminatorImp::CRLF => &[b'\r', b'\n'],
         }
     }
+
+    /// Returns true if and only if the given slice ends with this line
+    /// terminator.
+    ///
+    /// If this line terminator is `CRLF`, then this only checks whether the
+    /// last byte is `\n`.
+    #[inline]
+    pub fn is_suffix(&self, slice: &[u8]) -> bool {
+        slice.last().map_or(false, |&b| b == self.as_byte())
+    }
 }
 
 impl Default for  LineTerminator {
