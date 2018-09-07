@@ -323,8 +323,15 @@ impl RegexMatcher {
     /// Create a new matcher from the given pattern using the default
     /// configuration, but matches lines terminated by `\n`.
     ///
-    /// This returns an error if the given pattern contains a literal `\n`.
-    /// Other uses of `\n` (such as in `\s`) are removed transparently.
+    /// This is meant to be a convenience constructor for using a
+    /// `RegexMatcherBuilder` and setting its
+    /// [`line_terminator`](struct.RegexMatcherBuilder.html#method.line_terminator)
+    /// to `\n`. The purpose of using this constructor is to permit special
+    /// optimizations that help speed up line oriented search. These types of
+    /// optimizations are only appropriate when matches span no more than one
+    /// line. For this reason, this constructor will return an error if the
+    /// given pattern contains a literal `\n`. Other uses of `\n` (such as in
+    /// `\s`) are removed transparently.
     pub fn new_line_matcher(pattern: &str) -> Result<RegexMatcher, Error> {
         RegexMatcherBuilder::new()
             .line_terminator(Some(b'\n'))

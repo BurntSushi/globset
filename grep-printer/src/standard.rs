@@ -239,8 +239,9 @@ impl StandardBuilder {
     /// which may either be in index form (e.g., `$2`) or can reference named
     /// capturing groups if present in the original pattern (e.g., `$foo`).
     ///
-    /// For documentation on the full format, please see the `Matcher` trait's
-    /// `interpolate` method.
+    /// For documentation on the full format, please see the `Capture` trait's
+    /// `interpolate` method in the
+    /// [grep-printer](https://docs.rs/grep-printer) crate.
     pub fn replacement(
         &mut self,
         replacement: Option<Vec<u8>>,
