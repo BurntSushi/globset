@@ -1,5 +1,5 @@
-0.10.0 (TBD)
-============
+0.10.0 (2018-09-07)
+===================
 This is a new minor version release of ripgrep that contains some major new
 features, a huge number of bug fixes, and is the first release based on
 libripgrep. The entirety of ripgrep's core search and printing code has been
