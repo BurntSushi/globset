@@ -199,14 +199,32 @@ impl RegexMatcherBuilder {
         self
     }
 
-    /// Enable PCRE2's JIT.
+    /// Enable PCRE2's JIT and return an error if it's not available.
     ///
     /// This generally speeds up matching quite a bit. The downside is that it
     /// can increase the time it takes to compile a pattern.
     ///
-    /// This is disabled by default.
+    /// If the JIT isn't available or if JIT compilation returns an error, then
+    /// regex compilation will fail with the corresponding error.
+    ///
+    /// This is disabled by default, and always overrides `jit_if_available`.
     pub fn jit(&mut self, yes: bool) -> &mut RegexMatcherBuilder {
         self.builder.jit(yes);
+        self
+    }
+
+    /// Enable PCRE2's JIT if it's available.
+    ///
+    /// This generally speeds up matching quite a bit. The downside is that it
+    /// can increase the time it takes to compile a pattern.
+    ///
+    /// If the JIT isn't available or if JIT compilation returns an error,
+    /// then a debug message with the error will be emitted and the regex will
+    /// otherwise silently fall back to non-JIT matching.
+    ///
+    /// This is disabled by default, and always overrides `jit`.
+    pub fn jit_if_available(&mut self, yes: bool) -> &mut RegexMatcherBuilder {
+        self.builder.jit_if_available(yes);
         self
     }
 }

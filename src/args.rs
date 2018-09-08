@@ -633,7 +633,7 @@ impl ArgMatches {
         // For whatever reason, the JIT craps out during regex compilation with
         // a "no more memory" error on 32 bit systems. So don't use it there.
         if !cfg!(target_pointer_width = "32") {
-            builder.jit(true);
+            builder.jit_if_available(true);
         }
         if self.pcre2_unicode() {
             builder.utf(true).ucp(true);

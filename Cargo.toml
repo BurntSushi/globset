@@ -45,7 +45,7 @@ members = [
 ]
 
 [dependencies]
-grep = { version = "0.2.2", path = "grep" }
+grep = { version = "0.2.3", path = "grep" }
 ignore = { version = "0.4.4", path = "ignore" }
 lazy_static = "1.1.0"
 log = "0.4.5"
