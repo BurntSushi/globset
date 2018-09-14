@@ -288,8 +288,7 @@ $ # (Or using the attribute name, which is also ripgrep.)
 
 If you're a **Debian** user (or a user of a Debian derivative like **Ubuntu**),
 then ripgrep can be installed using a binary `.deb` file provided in each
-[ripgrep release](https://github.com/BurntSushi/ripgrep/releases). Note that
-ripgrep is not in the official Debian or Ubuntu repositories.
+[ripgrep release](https://github.com/BurntSushi/ripgrep/releases).
 
 ```
 $ curl -LO https://github.com/BurntSushi/ripgrep/releases/download/0.10.0/ripgrep_0.10.0_amd64.deb
@@ -298,6 +297,11 @@ $ sudo dpkg -i ripgrep_0.10.0_amd64.deb
 
 If you run Debian Buster (currently Debian testing) or Debian sid, ripgrep is
 [officially maintained by Debian](https://tracker.debian.org/pkg/rust-ripgrep).
+```
+$ sudo apt-get install ripgrep
+```
+
+From Cosmic (18.10), ripgrep is also [available in Ubuntu](https://launchpad.net/ubuntu/+source/rust-ripgrep) (same packaging as Debian).
 ```
 $ sudo apt-get install ripgrep
 ```
