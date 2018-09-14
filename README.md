@@ -301,7 +301,10 @@ If you run Debian Buster (currently Debian testing) or Debian sid, ripgrep is
 $ sudo apt-get install ripgrep
 ```
 
-From Cosmic (18.10), ripgrep is also [available in Ubuntu](https://launchpad.net/ubuntu/+source/rust-ripgrep) (same packaging as Debian).
+If you're an **Ubuntu Cosmic (18.10)** (or newer) user, ripgrep is
+[available](https://launchpad.net/ubuntu/+source/rust-ripgrep) using the same
+packaging as Debian:
+
 ```
 $ sudo apt-get install ripgrep
 ```
