@@ -909,6 +909,36 @@ be, to a very large extent, the result of luck. Sherlock Holmes
     eqnice!(expected, cmd.stdout());
 });
 
+rgtest!(compressed_brotli, |dir: Dir, mut cmd: TestCommand| {
+    if !cmd_exists("brotli") {
+        return;
+    }
+
+    dir.create_bytes("sherlock.br", include_bytes!("./data/sherlock.br"));
+    cmd.arg("-z").arg("Sherlock").arg("sherlock.br");
+
+    let expected = "\
+For the Doctor Watsons of this world, as opposed to the Sherlock
+be, to a very large extent, the result of luck. Sherlock Holmes
+";
+    eqnice!(expected, cmd.stdout());
+});
+
+rgtest!(compressed_zstd, |dir: Dir, mut cmd: TestCommand| {
+    if !cmd_exists("zstd") {
+        return;
+    }
+
+    dir.create_bytes("sherlock.zst", include_bytes!("./data/sherlock.zst"));
+    cmd.arg("-z").arg("Sherlock").arg("sherlock.zst");
+
+    let expected = "\
+For the Doctor Watsons of this world, as opposed to the Sherlock
+be, to a very large extent, the result of luck. Sherlock Holmes
+";
+    eqnice!(expected, cmd.stdout());
+});
+
 rgtest!(compressed_failing_gzip, |dir: Dir, mut cmd: TestCommand| {
     if !cmd_exists("gzip") {
         return;
