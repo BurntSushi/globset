@@ -108,8 +108,9 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("awk", &["*.awk"]),
     ("bazel", &["*.bzl", "WORKSPACE", "BUILD", "BUILD.bazel"]),
     ("bitbake", &["*.bb", "*.bbappend", "*.bbclass", "*.conf", "*.inc"]),
+    ("brotli", &["*.br"]),
     ("buildstream", &["*.bst"]),
-    ("bzip2", &["*.bz2"]),
+    ("bzip2", &["*.bz2", "*.tbz2"]),
     ("c", &["*.c", "*.h", "*.H", "*.cats"]),
     ("cabal", &["*.cabal"]),
     ("cbor", &["*.cbor"]),
@@ -147,7 +148,7 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("fsharp", &["*.fs", "*.fsx", "*.fsi"]),
     ("gn", &["*.gn", "*.gni"]),
     ("go", &["*.go"]),
-    ("gzip", &["*.gz"]),
+    ("gzip", &["*.gz", "*.tgz"]),
     ("groovy", &["*.groovy", "*.gradle"]),
     ("h", &["*.h", "*.hpp"]),
     ("hbs", &["*.hbs"]),
@@ -299,7 +300,7 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("wiki", &["*.mediawiki", "*.wiki"]),
     ("webidl", &["*.idl", "*.webidl", "*.widl"]),
     ("xml", &["*.xml", "*.xml.dist"]),
-    ("xz", &["*.xz"]),
+    ("xz", &["*.xz", "*.txz"]),
     ("yacc", &["*.y"]),
     ("yaml", &["*.yaml", "*.yml"]),
     ("zsh", &[
@@ -310,6 +311,7 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
         ".zshrc", "zshrc",
         "*.zsh",
     ]),
+    ("zstd", &["*.zst", "*.zstd"]),
 ];
 
 /// Glob represents a single glob in a set of file type definitions.
