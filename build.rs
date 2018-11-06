@@ -168,7 +168,12 @@ fn formatted_arg(arg: &RGArg) -> io::Result<String> {
 }
 
 fn formatted_doc_txt(arg: &RGArg) -> io::Result<String> {
-    let paragraphs: Vec<&str> = arg.doc_long.split("\n\n").collect();
+    let paragraphs: Vec<String> = arg.doc_long
+        .replace("{", "&#123;")
+        .replace("}", r"&#125;")
+        .split("\n\n")
+        .map(|s| s.to_string())
+        .collect();
     if paragraphs.is_empty() {
         return Err(ioerr(format!("missing docs for --{}", arg.name)));
     }
