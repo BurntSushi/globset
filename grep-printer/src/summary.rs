@@ -403,7 +403,7 @@ impl<W: WriteColor> Summary<W> {
     where M: Matcher,
           P: ?Sized + AsRef<Path>,
     {
-        if !self.config.path {
+        if !self.config.path && !self.config.kind.requires_path() {
             return self.sink(matcher);
         }
         let stats =
@@ -477,7 +477,10 @@ impl<'p, 's, M: Matcher, W: WriteColor> SummarySink<'p, 's, M, W> {
     /// This is unaffected by the result of searches before the previous
     /// search.
     pub fn has_match(&self) -> bool {
-        self.match_count > 0
+        match self.summary.config.kind {
+            SummaryKind::PathWithoutMatch => self.match_count == 0,
+            _ => self.match_count > 0,
+        }
     }
 
     /// If binary data was found in the previous search, this returns the

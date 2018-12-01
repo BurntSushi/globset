@@ -9,6 +9,11 @@ Feature enhancements:
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
 
+Bug fixes:
+
+* [BUG #1106](https://github.com/BurntSushi/ripgrep/issues/1106):
+  `--files-with-matches` and `--files-without-match` work with one file.
+
 
 0.10.0 (2018-09-07)
 ===================

@@ -569,6 +569,21 @@ rgtest!(r1064, |dir: Dir, mut cmd: TestCommand| {
     eqnice!("input:abc\n", cmd.arg("a(.*c)").stdout());
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/1130
+rgtest!(r1130, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("foo", "test");
+    eqnice!(
+        "foo\n",
+        cmd.arg("--files-with-matches").arg("test").arg("foo").stdout()
+    );
+
+    let mut cmd = dir.command();
+    eqnice!(
+        "foo\n",
+        cmd.arg("--files-without-match").arg("nada").arg("foo").stdout()
+    );
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1164
 rgtest!(r1164, |dir: Dir, mut cmd: TestCommand| {
     dir.create_dir(".git");
