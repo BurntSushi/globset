@@ -1118,7 +1118,7 @@ impl WalkParallel {
                 dent: dent,
                 ignore: self.ig_root.clone(),
                 root_device: root_device,
-            }));
+            })).unwrap();
             any_work = true;
         }
         // ... but there's no need to start workers if we don't need them.
@@ -1431,7 +1431,7 @@ impl Worker {
                 dent: dent,
                 ignore: ig.clone(),
                 root_device: root_device,
-            }));
+            })).unwrap();
         }
         WalkState::Continue
     }
@@ -1446,12 +1446,12 @@ impl Worker {
                 return None;
             }
             match self.rx.try_recv() {
-                Some(Message::Work(work)) => {
+                Ok(Message::Work(work)) => {
                     self.waiting(false);
                     self.quitting(false);
                     return Some(work);
                 }
-                Some(Message::Quit) => {
+                Ok(Message::Quit) => {
                     // We can't just quit because a Message::Quit could be
                     // spurious. For example, it's possible to observe that
                     // all workers are waiting even if there's more work to
@@ -1482,12 +1482,12 @@ impl Worker {
                         // Otherwise, spin.
                     }
                 }
-                None => {
+                Err(_) => {
                     self.waiting(true);
                     self.quitting(false);
                     if self.num_waiting() == self.threads {
                         for _ in 0..self.threads {
-                            self.tx.send(Message::Quit);
+                            self.tx.send(Message::Quit).unwrap();
                         }
                     } else {
                         // You're right to consider this suspicious, but it's
@@ -1702,7 +1702,7 @@ mod tests {
     use std::path::Path;
     use std::sync::{Arc, Mutex};
 
-    use tempdir::TempDir;
+    use tempfile::{self, TempDir};
 
     use super::{DirEntry, WalkBuilder, WalkState};
 
@@ -1789,6 +1789,10 @@ mod tests {
         paths
     }
 
+    fn tmpdir(prefix: &str) -> TempDir {
+        tempfile::Builder::new().prefix(prefix).tempdir().unwrap()
+    }
+
     fn assert_paths(
         prefix: &Path,
         builder: &WalkBuilder,
@@ -1802,7 +1806,7 @@ mod tests {
 
     #[test]
     fn no_ignores() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("a/b/c"));
         mkdirp(td.path().join("x/y"));
         wfile(td.path().join("a/b/foo"), "");
@@ -1815,7 +1819,7 @@ mod tests {
 
     #[test]
     fn custom_ignore() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         let custom_ignore = ".customignore";
         mkdirp(td.path().join("a"));
         wfile(td.path().join(custom_ignore), "foo");
@@ -1831,7 +1835,7 @@ mod tests {
 
     #[test]
     fn custom_ignore_exclusive_use() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         let custom_ignore = ".customignore";
         mkdirp(td.path().join("a"));
         wfile(td.path().join(custom_ignore), "foo");
@@ -1851,7 +1855,7 @@ mod tests {
 
     #[test]
     fn gitignore() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("a"));
         wfile(td.path().join(".gitignore"), "foo");
@@ -1867,7 +1871,7 @@ mod tests {
 
     #[test]
     fn explicit_ignore() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         let igpath = td.path().join(".not-an-ignore");
         mkdirp(td.path().join("a"));
         wfile(&igpath, "foo");
@@ -1883,7 +1887,7 @@ mod tests {
 
     #[test]
     fn explicit_ignore_exclusive_use() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         let igpath = td.path().join(".not-an-ignore");
         mkdirp(td.path().join("a"));
         wfile(&igpath, "foo");
@@ -1901,7 +1905,7 @@ mod tests {
 
     #[test]
     fn gitignore_parent() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("a"));
         wfile(td.path().join(".gitignore"), "foo");
@@ -1914,7 +1918,7 @@ mod tests {
 
     #[test]
     fn max_depth() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("a/b/c"));
         wfile(td.path().join("foo"), "");
         wfile(td.path().join("a/foo"), "");
@@ -1934,7 +1938,7 @@ mod tests {
 
     #[test]
     fn max_filesize() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("a/b"));
         wfile_size(td.path().join("foo"), 0);
         wfile_size(td.path().join("bar"), 400);
@@ -1961,7 +1965,7 @@ mod tests {
     #[cfg(unix)] // because symlinks on windows are weird
     #[test]
     fn symlinks() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("a/b"));
         symlink(td.path().join("a/b"), td.path().join("z"));
         wfile(td.path().join("a/b/foo"), "");
@@ -1978,7 +1982,7 @@ mod tests {
     #[cfg(unix)] // because symlinks on windows are weird
     #[test]
     fn first_path_not_symlink() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("foo"));
 
         let dents = WalkBuilder::new(td.path().join("foo"))
@@ -1999,7 +2003,7 @@ mod tests {
     #[cfg(unix)] // because symlinks on windows are weird
     #[test]
     fn symlink_loop() {
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         mkdirp(td.path().join("a/b"));
         symlink(td.path().join("a"), td.path().join("a/b/c"));
 
@@ -2029,7 +2033,7 @@ mod tests {
 
         // If our test directory actually isn't a different volume from /sys,
         // then this test is meaningless and we shouldn't run it.
-        let td = TempDir::new("walk-test-").unwrap();
+        let td = tmpdir("walk-test-");
         if device_num(td.path()).unwrap() == device_num("/sys").unwrap() {
             return;
         }

@@ -56,7 +56,7 @@ extern crate memchr;
 extern crate regex;
 extern crate same_file;
 #[cfg(test)]
-extern crate tempdir;
+extern crate tempfile;
 extern crate thread_local;
 extern crate walkdir;
 #[cfg(windows)]

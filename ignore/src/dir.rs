@@ -661,7 +661,7 @@ mod tests {
     use std::io::Write;
     use std::path::Path;
 
-    use tempdir::TempDir;
+    use tempfile::{self, TempDir};
 
     use dir::IgnoreBuilder;
     use gitignore::Gitignore;
@@ -683,9 +683,13 @@ mod tests {
         }
     }
 
+    fn tmpdir(prefix: &str) -> TempDir {
+        tempfile::Builder::new().prefix(prefix).tempdir().unwrap()
+    }
+
     #[test]
     fn explicit_ignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join("not-an-ignore"), "foo\n!bar");
 
         let (gi, err) = Gitignore::new(td.path().join("not-an-ignore"));
@@ -700,7 +704,7 @@ mod tests {
 
     #[test]
     fn git_exclude() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git/info"));
         wfile(td.path().join(".git/info/exclude"), "foo\n!bar");
 
@@ -713,7 +717,7 @@ mod tests {
 
     #[test]
     fn gitignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
         wfile(td.path().join(".gitignore"), "foo\n!bar");
 
@@ -726,7 +730,7 @@ mod tests {
 
     #[test]
     fn gitignore_no_git() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "foo\n!bar");
 
         let (ig, err) = IgnoreBuilder::new().build().add_child(td.path());
@@ -738,7 +742,7 @@ mod tests {
 
     #[test]
     fn ignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".ignore"), "foo\n!bar");
 
         let (ig, err) = IgnoreBuilder::new().build().add_child(td.path());
@@ -750,7 +754,7 @@ mod tests {
 
     #[test]
     fn custom_ignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         let custom_ignore = ".customignore";
         wfile(td.path().join(custom_ignore), "foo\n!bar");
 
@@ -766,7 +770,7 @@ mod tests {
     // Tests that a custom ignore file will override an .ignore.
     #[test]
     fn custom_ignore_over_ignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         let custom_ignore = ".customignore";
         wfile(td.path().join(".ignore"), "foo");
         wfile(td.path().join(custom_ignore), "!foo");
@@ -781,7 +785,7 @@ mod tests {
     // Tests that earlier custom ignore files have lower precedence than later.
     #[test]
     fn custom_ignore_precedence() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         let custom_ignore1 = ".customignore1";
         let custom_ignore2 = ".customignore2";
         wfile(td.path().join(custom_ignore1), "foo");
@@ -798,7 +802,7 @@ mod tests {
     // Tests that an .ignore will override a .gitignore.
     #[test]
     fn ignore_over_gitignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "foo");
         wfile(td.path().join(".ignore"), "!foo");
 
@@ -810,7 +814,7 @@ mod tests {
     // Tests that exclude has lower precedent than both .ignore and .gitignore.
     #[test]
     fn exclude_lowest() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "!foo");
         wfile(td.path().join(".ignore"), "!bar");
         mkdirp(td.path().join(".git/info"));
@@ -825,7 +829,7 @@ mod tests {
 
     #[test]
     fn errored() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "f**oo");
 
         let (_, err) = IgnoreBuilder::new().build().add_child(td.path());
@@ -834,7 +838,7 @@ mod tests {
 
     #[test]
     fn errored_both() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "f**oo");
         wfile(td.path().join(".ignore"), "fo**o");
 
@@ -844,7 +848,7 @@ mod tests {
 
     #[test]
     fn errored_partial() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
         wfile(td.path().join(".gitignore"), "f**oo\nbar");
 
@@ -855,7 +859,7 @@ mod tests {
 
     #[test]
     fn errored_partial_and_ignore() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         wfile(td.path().join(".gitignore"), "f**oo\nbar");
         wfile(td.path().join(".ignore"), "!bar");
 
@@ -866,7 +870,7 @@ mod tests {
 
     #[test]
     fn not_present_empty() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
 
         let (_, err) = IgnoreBuilder::new().build().add_child(td.path());
         assert!(err.is_none());
@@ -876,7 +880,7 @@ mod tests {
     fn stops_at_git_dir() {
         // This tests that .gitignore files beyond a .git barrier aren't
         // matched, but .ignore files are.
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("foo/.git"));
         wfile(td.path().join(".gitignore"), "foo");
@@ -897,7 +901,7 @@ mod tests {
 
     #[test]
     fn absolute_parent() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("foo"));
         wfile(td.path().join(".gitignore"), "bar");
@@ -920,7 +924,7 @@ mod tests {
 
     #[test]
     fn absolute_parent_anchored() {
-        let td = TempDir::new("ignore-test-").unwrap();
+        let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
         mkdirp(td.path().join("src/llvm"));
         wfile(td.path().join(".gitignore"), "/llvm/\nfoo");

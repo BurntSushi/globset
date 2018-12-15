@@ -37,19 +37,19 @@ fn main() {
             Box::new(move |result| {
                 use ignore::WalkState::*;
 
-                tx.send(DirEntry::Y(result.unwrap()));
+                tx.send(DirEntry::Y(result.unwrap())).unwrap();
                 Continue
             })
         });
     } else if simple {
         let walker = WalkDir::new(path);
         for result in walker {
-            tx.send(DirEntry::X(result.unwrap()));
+            tx.send(DirEntry::X(result.unwrap())).unwrap();
         }
     } else {
         let walker = WalkBuilder::new(path).build();
         for result in walker {
-            tx.send(DirEntry::Y(result.unwrap()));
+            tx.send(DirEntry::Y(result.unwrap())).unwrap();
         }
     }
     drop(tx);
