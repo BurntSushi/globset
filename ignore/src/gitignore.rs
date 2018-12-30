@@ -419,6 +419,8 @@ impl GitignoreBuilder {
         from: Option<PathBuf>,
         mut line: &str,
     ) -> Result<&mut GitignoreBuilder, Error> {
+        #![allow(deprecated)]
+
         if line.starts_with("#") {
             return Ok(self);
         }
