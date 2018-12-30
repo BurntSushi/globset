@@ -1,6 +1,6 @@
 [package]
 name = "ignore"
-version = "0.4.5"  #:version
+version = "0.4.6"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 A fast library for efficiently matching ignore files such as `.gitignore`
@@ -32,7 +32,6 @@ walkdir = "2.2.5"
 version = "0.1.1"
 
 [dev-dependencies]
-# tempdir = "0.3.7"
 tempfile = "3.0.5"
 
 [features]

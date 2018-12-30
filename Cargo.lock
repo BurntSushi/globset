@@ -256,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "ignore"
-version = "0.4.5"
+version = "0.4.6"
 dependencies = [
  "crossbeam-channel 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "globset 0.4.2",
@@ -523,7 +523,7 @@ version = "0.10.0"
 dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "grep 0.2.3",
- "ignore 0.4.5",
+ "ignore 0.4.6",
  "lazy_static 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
