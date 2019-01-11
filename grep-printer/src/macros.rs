@@ -1,3 +1,4 @@
+/// Like assert_eq, but nicer output for long strings.
 #[cfg(test)]
 #[macro_export]
 macro_rules! assert_eq_printed {
