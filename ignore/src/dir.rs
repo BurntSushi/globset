@@ -73,6 +73,8 @@ struct IgnoreOptions {
     git_ignore: bool,
     /// Whether to read .git/info/exclude files.
     git_exclude: bool,
+    /// Whether to ignore files case insensitively
+    ignore_case_insensitive: bool,
 }
 
 /// Ignore is a matcher useful for recursively walking one or more directories.
@@ -225,7 +227,11 @@ impl Ignore {
                 Gitignore::empty()
             } else {
                 let (m, err) =
-                    create_gitignore(&dir, &self.0.custom_ignore_filenames);
+                    create_gitignore(
+                        &dir,
+                        &self.0.custom_ignore_filenames,
+                        self.0.opts.ignore_case_insensitive,
+                    );
                 errs.maybe_push(err);
                 m
             };
@@ -233,7 +239,12 @@ impl Ignore {
             if !self.0.opts.ignore {
                 Gitignore::empty()
             } else {
-                let (m, err) = create_gitignore(&dir, &[".ignore"]);
+                let (m, err) =
+                    create_gitignore(
+                        &dir,
+                        &[".ignore"],
+                        self.0.opts.ignore_case_insensitive,
+                    );
                 errs.maybe_push(err);
                 m
             };
@@ -241,7 +252,12 @@ impl Ignore {
             if !self.0.opts.git_ignore {
                 Gitignore::empty()
             } else {
-                let (m, err) = create_gitignore(&dir, &[".gitignore"]);
+                let (m, err) =
+                    create_gitignore(
+                        &dir,
+                        &[".gitignore"],
+                        self.0.opts.ignore_case_insensitive,
+                    );
                 errs.maybe_push(err);
                 m
             };
@@ -249,7 +265,12 @@ impl Ignore {
             if !self.0.opts.git_exclude {
                 Gitignore::empty()
             } else {
-                let (m, err) = create_gitignore(&dir, &[".git/info/exclude"]);
+                let (m, err) =
+                    create_gitignore(
+                        &dir,
+                        &[".git/info/exclude"],
+                        self.0.opts.ignore_case_insensitive,
+                    );
                 errs.maybe_push(err);
                 m
             };
@@ -483,6 +504,7 @@ impl IgnoreBuilder {
                 git_global: true,
                 git_ignore: true,
                 git_exclude: true,
+                ignore_case_insensitive: false,
             },
         }
     }
@@ -496,7 +518,11 @@ impl IgnoreBuilder {
             if !self.opts.git_global {
                 Gitignore::empty()
             } else {
-                let (gi, err) = Gitignore::global();
+                let mut builder = GitignoreBuilder::new("");
+                builder
+                    .case_insensitive(self.opts.ignore_case_insensitive)
+                    .unwrap();
+                let (gi, err) = builder.build_global();
                 if let Some(err) = err {
                     debug!("{}", err);
                 }
@@ -627,6 +653,17 @@ impl IgnoreBuilder {
         self.opts.git_exclude = yes;
         self
     }
+
+    /// Process ignore files case insensitively
+    ///
+    /// This is disabled by default.
+    pub fn ignore_case_insensitive(
+        &mut self,
+        yes: bool,
+    ) -> &mut IgnoreBuilder {
+        self.opts.ignore_case_insensitive = yes;
+        self
+    }
 }
 
 /// Creates a new gitignore matcher for the directory given.
@@ -638,9 +675,11 @@ impl IgnoreBuilder {
 pub fn create_gitignore<T: AsRef<OsStr>>(
     dir: &Path,
     names: &[T],
+    case_insensitive: bool,
 ) -> (Gitignore, Option<Error>) {
     let mut builder = GitignoreBuilder::new(dir);
     let mut errs = PartialErrorBuilder::default();
+    builder.case_insensitive(case_insensitive).unwrap();
     for name in names {
         let gipath = dir.join(name.as_ref());
         errs.maybe_push_ignore_io(builder.add(gipath));

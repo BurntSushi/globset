@@ -115,6 +115,10 @@ _rg() {
     "(--no-ignore-global --no-ignore-parent --no-ignore-vcs)--no-ignore[don't respect ignore files]"
     $no'(--ignore-global --ignore-parent --ignore-vcs)--ignore[respect ignore files]'
 
+    + '(ignore-file-case-insensitive)' # Ignore-file case sensitivity options
+    '--ignore-file-case-insensitive[process ignore files case insensitively]'
+    $no'--no-ignore-file-case-insensitive[process ignore files case sensitively]'
+
     + '(ignore-global)' # Global ignore-file options
     "--no-ignore-global[don't respect global ignore files]"
     $no'--ignore-global[respect global ignore files]'

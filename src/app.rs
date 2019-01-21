@@ -571,6 +571,7 @@ pub fn all_args_and_flags() -> Vec<RGArg> {
     flag_iglob(&mut args);
     flag_ignore_case(&mut args);
     flag_ignore_file(&mut args);
+    flag_ignore_file_case_insensitive(&mut args);
     flag_invert_match(&mut args);
     flag_json(&mut args);
     flag_line_buffered(&mut args);
@@ -1206,6 +1207,27 @@ directly on the command line, then used -g instead.
         .help(SHORT).long_help(LONG)
         .multiple()
         .allow_leading_hyphen();
+    args.push(arg);
+}
+
+fn flag_ignore_file_case_insensitive(args: &mut Vec<RGArg>) {
+    const SHORT: &str =
+        "Process ignore files (.gitignore, .ignore, etc.) case insensitively.";
+    const LONG: &str = long!("\
+Process ignore files (.gitignore, .ignore, etc.) case insensitively. Note that
+this comes with a performance penalty and is most useful on case insensitive
+file systems (such as Windows).
+
+This flag can be disabled with the --no-ignore-file-case-insensitive flag.
+");
+    let arg = RGArg::switch("ignore-file-case-insensitive")
+        .help(SHORT).long_help(LONG)
+        .overrides("no-ignore-file-case-insensitive");
+    args.push(arg);
+
+    let arg = RGArg::switch("no-ignore-file-case-insensitive")
+        .hidden()
+        .overrides("ignore-file-case-insensitive");
     args.push(arg);
 }
 

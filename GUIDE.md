@@ -235,6 +235,11 @@ Like `.gitignore`, a `.ignore` file can be placed in any directory. Its rules
 will be processed with respect to the directory it resides in, just like
 `.gitignore`.
 
+To process `.gitignore` and `.ignore` files case insensitively, use the flag
+`--ignore-file-case-insensitive`. This is especially useful on case insensitive
+file systems like those on Windows and macOS. Note though that this can come
+with a significant performance penalty, and is therefore disabled by default.
+
 For a more in depth description of how glob patterns in a `.gitignore` file
 are interpreted, please see `man gitignore`.
 

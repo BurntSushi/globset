@@ -797,7 +797,8 @@ impl ArgMatches {
                 && !self.no_ignore_vcs()
                 && !self.no_ignore_global())
             .git_ignore(!self.no_ignore() && !self.no_ignore_vcs())
-            .git_exclude(!self.no_ignore() && !self.no_ignore_vcs());
+            .git_exclude(!self.no_ignore() && !self.no_ignore_vcs())
+            .ignore_case_insensitive(self.ignore_file_case_insensitive());
         if !self.no_ignore() {
             builder.add_custom_ignore_filename(".rgignore");
         }
@@ -1003,6 +1004,11 @@ impl ArgMatches {
         self.is_present("hidden") || self.unrestricted_count() >= 2
     }
 
+    /// Returns true if ignore files should be processed case insensitively.
+    fn ignore_file_case_insensitive(&self) -> bool {
+        self.is_present("ignore-file-case-insensitive")
+    }
+
     /// Return all of the ignore file paths given on the command line.
     fn ignore_paths(&self) -> Vec<PathBuf> {
         let paths = match self.values_of_os("ignore-file") {
@@ -1143,7 +1149,7 @@ impl ArgMatches {
             builder.add(&glob)?;
         }
         // This only enables case insensitivity for subsequent globs.
-        builder.case_insensitive(true)?;
+        builder.case_insensitive(true).unwrap();
         for glob in self.values_of_lossy_vec("iglob") {
             builder.add(&glob)?;
         }

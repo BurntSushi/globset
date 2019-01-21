@@ -1,3 +1,13 @@
+0.11.0 (TBD)
+============
+TODO.
+
+Feature enhancements:
+
+* [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
+  Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
+
+
 0.10.0 (2018-09-07)
 ===================
 This is a new minor version release of ripgrep that contains some major new

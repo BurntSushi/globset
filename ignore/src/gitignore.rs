@@ -127,16 +127,7 @@ impl Gitignore {
     /// `$XDG_CONFIG_HOME/git/ignore` is read. If `$XDG_CONFIG_HOME` is not
     /// set or is empty, then `$HOME/.config/git/ignore` is used instead.
     pub fn global() -> (Gitignore, Option<Error>) {
-        match gitconfig_excludes_path() {
-            None => (Gitignore::empty(), None),
-            Some(path) => {
-                if !path.is_file() {
-                    (Gitignore::empty(), None)
-                } else {
-                    Gitignore::new(path)
-                }
-            }
-        }
+        GitignoreBuilder::new("").build_global()
     }
 
     /// Creates a new empty gitignore matcher that never matches anything.
@@ -359,6 +350,36 @@ impl GitignoreBuilder {
         })
     }
 
+    /// Build a global gitignore matcher using the configuration in this
+    /// builder.
+    ///
+    /// This consumes ownership of the builder unlike `build` because it
+    /// must mutate the builder to add the global gitignore globs.
+    ///
+    /// Note that this ignores the path given to this builder's constructor
+    /// and instead derives the path automatically from git's global
+    /// configuration.
+    pub fn build_global(mut self) -> (Gitignore, Option<Error>) {
+        match gitconfig_excludes_path() {
+            None => (Gitignore::empty(), None),
+            Some(path) => {
+                if !path.is_file() {
+                    (Gitignore::empty(), None)
+                } else {
+                    let mut errs = PartialErrorBuilder::default();
+                    errs.maybe_push_ignore_io(self.add(path));
+                    match self.build() {
+                        Ok(gi) => (gi, errs.into_error_option()),
+                        Err(err) => {
+                            errs.push(err);
+                            (Gitignore::empty(), errs.into_error_option())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Add each glob from the file path given.
     ///
     /// The file given should be formatted as a `gitignore` file.
@@ -505,12 +526,16 @@ impl GitignoreBuilder {
 
     /// Toggle whether the globs should be matched case insensitively or not.
     ///
-    /// When this option is changed, only globs added after the change will be affected.
+    /// When this option is changed, only globs added after the change will be
+    /// affected.
     ///
     /// This is disabled by default.
     pub fn case_insensitive(
-        &mut self, yes: bool
+        &mut self,
+        yes: bool,
     ) -> Result<&mut GitignoreBuilder, Error> {
+        // TODO: This should not return a `Result`. Fix this in the next semver
+        // release.
         self.case_insensitive = yes;
         Ok(self)
     }
