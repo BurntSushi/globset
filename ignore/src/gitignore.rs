@@ -69,8 +69,7 @@ impl Glob {
 
     /// Returns true if and only if this glob has a `**/` prefix.
     fn has_doublestar_prefix(&self) -> bool {
-        self.actual.starts_with("**/")
-        || (self.actual == "**" && self.is_only_dir)
+        self.actual.starts_with("**/") || self.actual == "**"
     }
 }
 
@@ -710,6 +709,7 @@ mod tests {
     ignored!(ig40, ROOT, "\\*", "*");
     ignored!(ig41, ROOT, "\\a", "a");
     ignored!(ig42, ROOT, "s*.rs", "sfoo.rs");
+    ignored!(ig43, ROOT, "**", "foo.rs");
 
     not_ignored!(ignot1, ROOT, "amonths", "months");
     not_ignored!(ignot2, ROOT, "monthsa", "months");

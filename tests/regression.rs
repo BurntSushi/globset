@@ -596,3 +596,11 @@ rgtest!(r1164, |dir: Dir, mut cmd: TestCommand| {
         cmd.arg("--no-ignore-file-case-insensitive").stdout()
     );
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1173
+rgtest!(r1173, |dir: Dir, mut cmd: TestCommand| {
+    dir.create_dir(".git");
+    dir.create(".gitignore", "**");
+    dir.create("foo", "test");
+    cmd.arg("test").assert_err();
+});
