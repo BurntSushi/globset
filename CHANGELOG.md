@@ -13,6 +13,8 @@ Bug fixes:
 
 * [BUG #1106](https://github.com/BurntSushi/ripgrep/issues/1106):
   `--files-with-matches` and `--files-without-match` work with one file.
+* [BUG #1106](https://github.com/BurntSushi/ripgrep/pull/1093):
+  Fix handling of literal slashes in gitignore patterns.
 
 
 0.10.0 (2018-09-07)
