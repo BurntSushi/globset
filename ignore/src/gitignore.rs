@@ -458,7 +458,6 @@ impl GitignoreBuilder {
             is_whitelist: false,
             is_only_dir: false,
         };
-        let mut literal_separator = false;
         let mut is_absolute = false;
         if line.starts_with("\\!") || line.starts_with("\\#") {
             line = &line[1..];
@@ -473,7 +472,6 @@ impl GitignoreBuilder {
                 // then the glob can only match the beginning of a path
                 // (relative to the location of gitignore). We achieve this by
                 // simply banning wildcards from matching /.
-                literal_separator = true;
                 line = &line[1..];
                 is_absolute = true;
             }
@@ -486,16 +484,11 @@ impl GitignoreBuilder {
                 line = &line[..i];
             }
         }
-        // If there is a literal slash, then we note that so that globbing
-        // doesn't let wildcards match slashes.
         glob.actual = line.to_string();
-        if is_absolute || line.chars().any(|c| c == '/') {
-            literal_separator = true;
-        }
-        // If there was a slash, then this is a glob that must match the entire
-        // path name. Otherwise, we should let it match anywhere, so use a **/
-        // prefix.
-        if !literal_separator {
+        // If there is a literal slash, then this is a glob that must match the
+        // entire path name. Otherwise, we should let it match anywhere, so use
+        // a **/ prefix.
+        if !is_absolute && !line.chars().any(|c| c == '/') {
             // ... but only if we don't already have a **/ prefix.
             if !glob.has_doublestar_prefix() {
                 glob.actual = format!("**/{}", glob.actual);
@@ -509,7 +502,7 @@ impl GitignoreBuilder {
         }
         let parsed =
             GlobBuilder::new(&glob.actual)
-                .literal_separator(literal_separator)
+                .literal_separator(true)
                 .case_insensitive(self.case_insensitive)
                 .backslash_escape(true)
                 .build()
@@ -716,6 +709,7 @@ mod tests {
     ignored!(ig39, ROOT, "\\?", "?");
     ignored!(ig40, ROOT, "\\*", "*");
     ignored!(ig41, ROOT, "\\a", "a");
+    ignored!(ig42, ROOT, "s*.rs", "sfoo.rs");
 
     not_ignored!(ignot1, ROOT, "amonths", "months");
     not_ignored!(ignot2, ROOT, "monthsa", "months");
@@ -737,6 +731,7 @@ mod tests {
     not_ignored!(ignot16, ROOT, "*\n!**/", "foo", true);
     not_ignored!(ignot17, ROOT, "src/*.rs", "src/grep/src/main.rs");
     not_ignored!(ignot18, ROOT, "path1/*", "path2/path1/foo");
+    not_ignored!(ignot19, ROOT, "s*.rs", "src/foo.rs");
 
     fn bytes(s: &str) -> Vec<u8> {
         s.to_string().into_bytes()
