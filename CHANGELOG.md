@@ -8,6 +8,8 @@ Feature enhancements:
   Add support for Brotli and Zstd to the `-z/--search-zip` flag.
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
+* [FEATURE #1173](https://github.com/BurntSushi/ripgrep/pull/1173):
+  Fix handling of `**` patterns in gitignore files.
 
 Bug fixes:
 
