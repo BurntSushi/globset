@@ -18,6 +18,8 @@ Bug fixes:
   `--files-with-matches` and `--files-without-match` work with one file.
 * [BUG #1093](https://github.com/BurntSushi/ripgrep/pull/1093):
   Fix handling of literal slashes in gitignore patterns.
+* [BUG #1121](https://github.com/BurntSushi/ripgrep/issues/1121):
+  Fix bug that was triggering Windows antimalware when using the --files flag.
 * [BUG #1173](https://github.com/BurntSushi/ripgrep/issues/1173):
   Fix handling of `**` patterns in gitignore files.
 * [BUG #1174](https://github.com/BurntSushi/ripgrep/issues/1174):
