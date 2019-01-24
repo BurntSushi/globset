@@ -850,27 +850,44 @@ impl<'a> Parser<'a> {
             }
             return Ok(());
         }
-        self.pop_token()?;
+
         if !prev.map(is_separator).unwrap_or(false) {
             if self.stack.len() <= 1
                 || (prev != Some(',') && prev != Some('{')) {
                 return Err(self.error(ErrorKind::InvalidRecursive));
             }
         }
-        match self.chars.peek() {
-            None => {
-                assert!(self.bump().is_none());
-                self.push_token(Token::RecursiveSuffix)
+        let is_suffix =
+            match self.chars.peek() {
+                None => {
+                    assert!(self.bump().is_none());
+                    true
+                }
+                Some(&',') | Some(&'}') if self.stack.len() >= 2 => {
+                    true
+                }
+                Some(&c) if is_separator(c) => {
+                    assert!(self.bump().map(is_separator).unwrap_or(false));
+                    false
+                }
+                _ => return Err(self.error(ErrorKind::InvalidRecursive)),
+            };
+        match self.pop_token()? {
+            Token::RecursivePrefix => {
+                self.push_token(Token::RecursivePrefix)?;
             }
-            Some(&',') | Some(&'}') if self.stack.len() >= 2 => {
-                self.push_token(Token::RecursiveSuffix)
+            Token::RecursiveSuffix => {
+                self.push_token(Token::RecursiveSuffix)?;
             }
-            Some(&c) if is_separator(c) => {
-                assert!(self.bump().map(is_separator).unwrap_or(false));
-                self.push_token(Token::RecursiveZeroOrMore)
+            _ => {
+                if is_suffix {
+                    self.push_token(Token::RecursiveSuffix)?;
+                } else {
+                    self.push_token(Token::RecursiveZeroOrMore)?;
+                }
             }
-            _ => Err(self.error(ErrorKind::InvalidRecursive)),
         }
+        Ok(())
     }
 
     fn parse_class(&mut self) -> Result<(), Error> {
@@ -1194,8 +1211,23 @@ mod tests {
     toregex!(re8, "[*]", r"^[\*]$");
     toregex!(re9, "[+]", r"^[\+]$");
     toregex!(re10, "+", r"^\+$");
-    toregex!(re11, "**", r"^.*$");
-    toregex!(re12, "☃", r"^\xe2\x98\x83$");
+    toregex!(re11, "☃", r"^\xe2\x98\x83$");
+    toregex!(re12, "**", r"^.*$");
+    toregex!(re13, "**/", r"^.*$");
+    toregex!(re14, "**/*", r"^(?:/?|.*/).*$");
+    toregex!(re15, "**/**", r"^.*$");
+    toregex!(re16, "**/**/*", r"^(?:/?|.*/).*$");
+    toregex!(re17, "**/**/**", r"^.*$");
+    toregex!(re18, "**/**/**/*", r"^(?:/?|.*/).*$");
+    toregex!(re19, "a/**", r"^a(?:/?|/.*)$");
+    toregex!(re20, "a/**/**", r"^a(?:/?|/.*)$");
+    toregex!(re21, "a/**/**/**", r"^a(?:/?|/.*)$");
+    toregex!(re22, "a/**/b", r"^a(?:/|/.*/)b$");
+    toregex!(re23, "a/**/**/b", r"^a(?:/|/.*/)b$");
+    toregex!(re24, "a/**/**/**/b", r"^a(?:/|/.*/)b$");
+    toregex!(re25, "**/b", r"^(?:/?|.*/)b$");
+    toregex!(re26, "**/**/b", r"^(?:/?|.*/)b$");
+    toregex!(re27, "**/**/**/b", r"^(?:/?|.*/)b$");
 
     matches!(match1, "a", "a");
     matches!(match2, "a*b", "a_b");

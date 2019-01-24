@@ -604,3 +604,12 @@ rgtest!(r1173, |dir: Dir, mut cmd: TestCommand| {
     dir.create("foo", "test");
     cmd.arg("test").assert_err();
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1174
+rgtest!(r1174, |dir: Dir, mut cmd: TestCommand| {
+    dir.create_dir(".git");
+    dir.create(".gitignore", "**/**/*");
+    dir.create_dir("a");
+    dir.create("a/foo", "test");
+    cmd.arg("test").assert_err();
+});
