@@ -837,40 +837,49 @@ impl<'a> Parser<'a> {
 
     fn parse_star(&mut self) -> Result<(), Error> {
         let prev = self.prev;
-        if self.chars.peek() != Some(&'*') {
+        if self.peek() != Some('*') {
             self.push_token(Token::ZeroOrMore)?;
             return Ok(());
         }
         assert!(self.bump() == Some('*'));
         if !self.have_tokens()? {
-            self.push_token(Token::RecursivePrefix)?;
-            let next = self.bump();
-            if !next.map(is_separator).unwrap_or(true) {
-                return Err(self.error(ErrorKind::InvalidRecursive));
+            if !self.peek().map_or(true, is_separator) {
+                self.push_token(Token::ZeroOrMore)?;
+                self.push_token(Token::ZeroOrMore)?;
+            } else {
+                self.push_token(Token::RecursivePrefix)?;
+                assert!(self.bump().map_or(true, is_separator));
             }
             return Ok(());
         }
 
         if !prev.map(is_separator).unwrap_or(false) {
             if self.stack.len() <= 1
-                || (prev != Some(',') && prev != Some('{')) {
-                return Err(self.error(ErrorKind::InvalidRecursive));
+                || (prev != Some(',') && prev != Some('{'))
+            {
+                self.push_token(Token::ZeroOrMore)?;
+                self.push_token(Token::ZeroOrMore)?;
+                return Ok(());
             }
         }
         let is_suffix =
-            match self.chars.peek() {
+            match self.peek() {
                 None => {
                     assert!(self.bump().is_none());
                     true
                 }
-                Some(&',') | Some(&'}') if self.stack.len() >= 2 => {
+                Some(',') | Some('}') if self.stack.len() >= 2 => {
                     true
                 }
-                Some(&c) if is_separator(c) => {
+                Some(c) if is_separator(c) => {
                     assert!(self.bump().map(is_separator).unwrap_or(false));
                     false
                 }
-                _ => return Err(self.error(ErrorKind::InvalidRecursive)),
+                _ => {
+                    self.push_token(Token::ZeroOrMore)?;
+                    self.push_token(Token::ZeroOrMore)?;
+                    return Ok(());
+                }
             };
         match self.pop_token()? {
             Token::RecursivePrefix => {
@@ -975,6 +984,10 @@ impl<'a> Parser<'a> {
         self.prev = self.cur;
         self.cur = self.chars.next();
         self.cur
+    }
+
+    fn peek(&mut self) -> Option<char> {
+        self.chars.peek().map(|&ch| ch)
     }
 }
 
@@ -1161,13 +1174,6 @@ mod tests {
     syntax!(cls20, "[^a]", vec![classn('a', 'a')]);
     syntax!(cls21, "[^a-z]", vec![classn('a', 'z')]);
 
-    syntaxerr!(err_rseq1, "a**", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq2, "**a", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq3, "a**b", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq4, "***", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq5, "/a**", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq6, "/**a", ErrorKind::InvalidRecursive);
-    syntaxerr!(err_rseq7, "/a**b", ErrorKind::InvalidRecursive);
     syntaxerr!(err_unclosed1, "[", ErrorKind::UnclosedClass);
     syntaxerr!(err_unclosed2, "[]", ErrorKind::UnclosedClass);
     syntaxerr!(err_unclosed3, "[!", ErrorKind::UnclosedClass);
@@ -1228,6 +1234,13 @@ mod tests {
     toregex!(re25, "**/b", r"^(?:/?|.*/)b$");
     toregex!(re26, "**/**/b", r"^(?:/?|.*/)b$");
     toregex!(re27, "**/**/**/b", r"^(?:/?|.*/)b$");
+    toregex!(re28, "a**", r"^a.*.*$");
+    toregex!(re29, "**a", r"^.*.*a$");
+    toregex!(re30, "a**b", r"^a.*.*b$");
+    toregex!(re31, "***", r"^.*.*.*$");
+    toregex!(re32, "/a**", r"^/a.*.*$");
+    toregex!(re33, "/**a", r"^/.*.*a$");
+    toregex!(re34, "/a**b", r"^/a.*.*b$");
 
     matches!(match1, "a", "a");
     matches!(match2, "a*b", "a_b");

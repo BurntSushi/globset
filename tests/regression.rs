@@ -569,6 +569,14 @@ rgtest!(r1064, |dir: Dir, mut cmd: TestCommand| {
     eqnice!("input:abc\n", cmd.arg("a(.*c)").stdout());
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/1174
+rgtest!(r1098, |dir: Dir, mut cmd: TestCommand| {
+    dir.create_dir(".git");
+    dir.create(".gitignore", "a**b");
+    dir.create("afoob", "test");
+    cmd.arg("test").assert_err();
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1130
 rgtest!(r1130, |dir: Dir, mut cmd: TestCommand| {
     dir.create("foo", "test");

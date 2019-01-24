@@ -143,8 +143,13 @@ pub struct Error {
 /// The kind of error that can occur when parsing a glob pattern.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ErrorKind {
-    /// Occurs when a use of `**` is invalid. Namely, `**` can only appear
-    /// adjacent to a path separator, or the beginning/end of a glob.
+    /// **DEPRECATED**.
+    ///
+    /// This error used to occur for consistency with git's glob specification,
+    /// but the specification now accepts all uses of `**`. When `**` does not
+    /// appear adjacent to a path separator or at the beginning/end of a glob,
+    /// it is now treated as two consecutive `*` patterns. As such, this error
+    /// is no longer used.
     InvalidRecursive,
     /// Occurs when a character class (e.g., `[abc]`) is not closed.
     UnclosedClass,

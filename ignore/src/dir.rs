@@ -869,7 +869,7 @@ mod tests {
     #[test]
     fn errored() {
         let td = tmpdir("ignore-test-");
-        wfile(td.path().join(".gitignore"), "f**oo");
+        wfile(td.path().join(".gitignore"), "{foo");
 
         let (_, err) = IgnoreBuilder::new().build().add_child(td.path());
         assert!(err.is_some());
@@ -878,8 +878,8 @@ mod tests {
     #[test]
     fn errored_both() {
         let td = tmpdir("ignore-test-");
-        wfile(td.path().join(".gitignore"), "f**oo");
-        wfile(td.path().join(".ignore"), "fo**o");
+        wfile(td.path().join(".gitignore"), "{foo");
+        wfile(td.path().join(".ignore"), "{bar");
 
         let (_, err) = IgnoreBuilder::new().build().add_child(td.path());
         assert_eq!(2, partial(err.expect("an error")).len());
@@ -889,7 +889,7 @@ mod tests {
     fn errored_partial() {
         let td = tmpdir("ignore-test-");
         mkdirp(td.path().join(".git"));
-        wfile(td.path().join(".gitignore"), "f**oo\nbar");
+        wfile(td.path().join(".gitignore"), "{foo\nbar");
 
         let (ig, err) = IgnoreBuilder::new().build().add_child(td.path());
         assert!(err.is_some());
@@ -899,7 +899,7 @@ mod tests {
     #[test]
     fn errored_partial_and_ignore() {
         let td = tmpdir("ignore-test-");
-        wfile(td.path().join(".gitignore"), "f**oo\nbar");
+        wfile(td.path().join(".gitignore"), "{foo\nbar");
         wfile(td.path().join(".ignore"), "!bar");
 
         let (ig, err) = IgnoreBuilder::new().build().add_child(td.path());
