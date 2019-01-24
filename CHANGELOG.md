@@ -8,15 +8,17 @@ Feature enhancements:
   Add support for Brotli and Zstd to the `-z/--search-zip` flag.
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
-* [FEATURE #1173](https://github.com/BurntSushi/ripgrep/pull/1173):
-  Fix handling of `**` patterns in gitignore files.
 
 Bug fixes:
 
 * [BUG #1106](https://github.com/BurntSushi/ripgrep/issues/1106):
   `--files-with-matches` and `--files-without-match` work with one file.
-* [BUG #1106](https://github.com/BurntSushi/ripgrep/pull/1093):
+* [BUG #1093](https://github.com/BurntSushi/ripgrep/pull/1093):
   Fix handling of literal slashes in gitignore patterns.
+* [BUG #1173](https://github.com/BurntSushi/ripgrep/issues/1173):
+  Fix handling of `**` patterns in gitignore files.
+* [BUG #1174](https://github.com/BurntSushi/ripgrep/issues/1174):
+  Fix handling of repeated `**` patterns in gitignore files.
 
 
 0.10.0 (2018-09-07)
