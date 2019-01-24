@@ -2,6 +2,15 @@
 ============
 TODO.
 
+**BREAKING CHANGES**:
+
+* The `avx-accel` feature of ripgrep has been removed since it is no longer
+  necessary. All uses of AVX in ripgrep are now enabled automatically via
+  runtime CPU feature detection. The `simd-accel` feature does remain
+  available, however, it is broken in the latest nightly release of Rust.
+  See [#1175](https://github.com/BurntSushi/ripgrep/issues/1175) for more
+  info.
+
 Feature enhancements:
 
 * [FEATURE #1099](https://github.com/BurntSushi/ripgrep/pull/1099):

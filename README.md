@@ -383,19 +383,19 @@ $ ./target/release/rg --version
 If you have a Rust nightly compiler and a recent Intel CPU, then you can enable
 additional optional SIMD acceleration like so:
 
+**WARNING**: Building with the `simd-accel` feature on the latest Rust nightly
+does not work because the [`encoding_rs`](https://crates.io/crates/encoding_rs)
+crate hasn't yet migrated to the new SIMD infrastructure, and the old SIMD
+infrastructure no longer works on the latest nightly version of Rust.
+
 ```
-RUSTFLAGS="-C target-cpu=native" cargo build --release --features 'simd-accel avx-accel'
+RUSTFLAGS="-C target-cpu=native" cargo build --release --features 'simd-accel'
 ```
 
-If your machine doesn't support AVX instructions, then simply remove
-`avx-accel` from the features list. Similarly for SIMD (which corresponds
-roughly to SSE instructions).
-
-The `simd-accel` and `avx-accel` features enable SIMD support in certain
-ripgrep dependencies (responsible for counting lines and transcoding). They
-are not necessary to get SIMD optimizations for search; those are enabled
-automatically. Hopefully, some day, the `simd-accel` and `avx-accel` features
-will similarly become unnecessary.
+The `simd-accel` feature enables SIMD support in certain ripgrep dependencies
+(responsible for transcoding). They are not necessary to get SIMD optimizations
+for search; those are enabled automatically. Hopefully, some day, the
+`simd-accel` feature will similarly become unnecessary.
 
 Finally, optional PCRE2 support can be built with ripgrep by enabling the
 `pcre2` feature:
@@ -404,8 +404,8 @@ Finally, optional PCRE2 support can be built with ripgrep by enabling the
 $ cargo build --release --features 'pcre2'
 ```
 
-(Tip: use `--features 'pcre2 simd-accel avx-accel'` to also include compile
-time SIMD optimizations, which will only work with a nightly compiler.)
+(Tip: use `--features 'pcre2 simd-accel'` to also include compile time SIMD
+optimizations, which will only work with a nightly compiler.)
 
 Enabling the PCRE2 feature works with a stable Rust compiler and will
 attempt to automatically find and link with your system's PCRE2 library via
