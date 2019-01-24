@@ -149,15 +149,12 @@ dependencies = [
 name = "grep"
 version = "0.2.3"
 dependencies = [
- "atty 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "grep-cli 0.1.1",
  "grep-matcher 0.1.1",
  "grep-pcre2 0.1.2",
  "grep-printer 0.1.1",
  "grep-regex 0.1.1",
  "grep-searcher 0.1.1",
- "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "termcolor 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 2.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
