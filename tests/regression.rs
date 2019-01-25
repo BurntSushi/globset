@@ -592,6 +592,15 @@ rgtest!(r1130, |dir: Dir, mut cmd: TestCommand| {
     );
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/1163
+rgtest!(r1163, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("bom.txt", "\u{FEFF}test123\ntest123");
+    eqnice!(
+        "bom.txt:test123\nbom.txt:test123\n",
+        cmd.arg("^test123").stdout()
+    );
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1164
 rgtest!(r1164, |dir: Dir, mut cmd: TestCommand| {
     dir.create_dir(".git");

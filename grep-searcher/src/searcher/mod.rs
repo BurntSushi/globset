@@ -307,6 +307,7 @@ impl SearcherBuilder {
         decode_builder
             .encoding(self.config.encoding.as_ref().map(|e| e.0))
             .utf8_passthru(true)
+            .strip_bom(true)
             .bom_override(true);
         Searcher {
             config: config,
