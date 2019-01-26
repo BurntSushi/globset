@@ -593,8 +593,45 @@ rgtest!(r1130, |dir: Dir, mut cmd: TestCommand| {
 });
 
 // See: https://github.com/BurntSushi/ripgrep/issues/1159
-rgtest!(r1159, |_: Dir, mut cmd: TestCommand| {
+rgtest!(r1159_invalid_flag, |_: Dir, mut cmd: TestCommand| {
     cmd.arg("--wat").assert_exit_code(2);
+});
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1159
+rgtest!(r1159_exit_status, |dir: Dir, _: TestCommand| {
+    dir.create("foo", "test");
+
+    // search with a match gets 0 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("test").assert_exit_code(0);
+
+    // search with --quiet and a match gets 0 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("-q").arg("test").assert_exit_code(0);
+
+    // search with a match and an error gets 2 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("test").arg("no-file").assert_exit_code(2);
+
+    // search with a match in --quiet mode and an error gets 0 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("-q").arg("test").arg("foo").arg("no-file").assert_exit_code(0);
+
+    // search with no match gets 1 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("nada").assert_exit_code(1);
+
+    // search with --quiet and no match gets 1 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("-q").arg("nada").assert_exit_code(1);
+
+    // search with no match and an error gets 2 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("nada").arg("no-file").assert_exit_code(2);
+
+    // search with no match in --quiet mode and an error gets 2 exit status.
+    let mut cmd = dir.command();
+    cmd.arg("-q").arg("nada").arg("foo").arg("no-file").assert_exit_code(2);
 });
 
 // See: https://github.com/BurntSushi/ripgrep/issues/1163

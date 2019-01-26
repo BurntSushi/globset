@@ -268,6 +268,11 @@ impl Args {
         Ok(builder.build(wtr))
     }
 
+    /// Returns true if and only if ripgrep should be "quiet."
+    pub fn quiet(&self) -> bool {
+        self.matches().is_present("quiet")
+    }
+
     /// Returns true if and only if the search should quit after finding the
     /// first match.
     pub fn quit_after_match(&self) -> Result<bool> {

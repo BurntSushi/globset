@@ -2,7 +2,9 @@ use std::sync::atomic::{ATOMIC_BOOL_INIT, AtomicBool, Ordering};
 
 static MESSAGES: AtomicBool = ATOMIC_BOOL_INIT;
 static IGNORE_MESSAGES: AtomicBool = ATOMIC_BOOL_INIT;
+static ERRORED: AtomicBool = ATOMIC_BOOL_INIT;
 
+/// Emit a non-fatal error message, unless messages were disabled.
 #[macro_export]
 macro_rules! message {
     ($($tt:tt)*) => {
@@ -12,6 +14,18 @@ macro_rules! message {
     }
 }
 
+/// Like message, but sets ripgrep's "errored" flag, which controls the exit
+/// status.
+#[macro_export]
+macro_rules! err_message {
+    ($($tt:tt)*) => {
+        crate::messages::set_errored();
+        message!($($tt)*);
+    }
+}
+
+/// Emit a non-fatal ignore-related error message (like a parse error), unless
+/// ignore-messages were disabled.
 #[macro_export]
 macro_rules! ignore_message {
     ($($tt:tt)*) => {
@@ -47,4 +61,14 @@ pub fn ignore_messages() -> bool {
 /// of this setting.
 pub fn set_ignore_messages(yes: bool) {
     IGNORE_MESSAGES.store(yes, Ordering::SeqCst)
+}
+
+/// Returns true if and only if ripgrep came across a non-fatal error.
+pub fn errored() -> bool {
+    ERRORED.load(Ordering::SeqCst)
+}
+
+/// Indicate that ripgrep has come across a non-fatal error.
+pub fn set_errored() {
+    ERRORED.store(true, Ordering::SeqCst);
 }

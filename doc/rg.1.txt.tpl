@@ -90,7 +90,15 @@ EXIT STATUS
 -----------
 If ripgrep finds a match, then the exit status of the program is 0. If no match
 could be found, then the exit status is 1. If an error occurred, then the exit
-status is 2.
+status is always 2 unless ripgrep was run with the *--quiet* flag and a match
+was found. In summary:
+
+* `0` exit status occurs only when at least one match was found, and if
+  no error occurred, unless *--quiet* was given.
+* `1` exit status occurs only when no match was found and no error occurred.
+* `2` exit status occurs when an error occurred. This is true for both
+  catastrophic errors (e.g., a regex syntax error) and for soft errors (e.g.,
+  unable to read a file).
 
 
 CONFIGURATION FILES

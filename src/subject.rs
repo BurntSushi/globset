@@ -41,7 +41,7 @@ impl SubjectBuilder {
         match result {
             Ok(dent) => self.build(dent),
             Err(err) => {
-                message!("{}", err);
+                err_message!("{}", err);
                 None
             }
         }
@@ -127,9 +127,19 @@ impl Subject {
         self.dent.is_stdin()
     }
 
-    /// Returns true if and only if this subject points to a directory.
+    /// Returns true if and only if this subject points to a directory after
+    /// following symbolic links.
     fn is_dir(&self) -> bool {
-        self.dent.file_type().map_or(false, |ft| ft.is_dir())
+        let ft = match self.dent.file_type() {
+            None => return false,
+            Some(ft) => ft,
+        };
+        if ft.is_dir() {
+            return true;
+        }
+        // If this is a symlink, then we want to follow it to determine
+        // whether it's a directory or not.
+        self.dent.path_is_symlink() && self.dent.path().is_dir()
     }
 
     /// Returns true if and only if this subject points to a file.

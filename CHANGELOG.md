@@ -4,6 +4,13 @@ TODO.
 
 **BREAKING CHANGES**:
 
+* ripgrep has tweaked its exit status codes to be more like GNU grep's. Namely,
+  if a non-fatal error occurs during a search, then ripgrep will now always
+  emit a `2` exit status code, regardless of whether a match is found or not.
+  Previously, ripgrep would only emit a `2` exit status code for a catastrophic
+  error (e.g., regex syntax error). One exception to this is if ripgrep is run
+  with `-q/--quiet`. In that case, if an error occurs and a match is found,
+  then ripgrep will exit with a `0` exit status code.
 * The `avx-accel` feature of ripgrep has been removed since it is no longer
   necessary. All uses of AVX in ripgrep are now enabled automatically via
   runtime CPU feature detection. The `simd-accel` feature does remain
@@ -17,6 +24,8 @@ Feature enhancements:
   Add support for Brotli and Zstd to the `-z/--search-zip` flag.
 * [FEATURE #1138](https://github.com/BurntSushi/ripgrep/pull/1138):
   Add `--no-ignore-dot` flag for ignoring `.ignore` files.
+* [FEATURE #1159](https://github.com/BurntSushi/ripgrep/pull/1159):
+  ripgrep's exit status logic should now match GNU grep. See updated man page.
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
 

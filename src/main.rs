@@ -22,33 +22,37 @@ mod subject;
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
 fn main() {
-    match Args::parse().and_then(try_main) {
-        Ok(true) => process::exit(0),
-        Ok(false) => process::exit(1),
-        Err(err) => {
-            eprintln!("{}", err);
-            process::exit(2);
-        }
+    if let Err(err) = Args::parse().and_then(try_main) {
+        eprintln!("{}", err);
+        process::exit(2);
     }
 }
 
-fn try_main(args: Args) -> Result<bool> {
+fn try_main(args: Args) -> Result<()> {
     use args::Command::*;
 
-    match args.command()? {
-        Search => search(args),
-        SearchParallel => search_parallel(args),
-        SearchNever => Ok(false),
-        Files => files(args),
-        FilesParallel => files_parallel(args),
-        Types => types(args),
+    let matched =
+        match args.command()? {
+            Search => search(&args),
+            SearchParallel => search_parallel(&args),
+            SearchNever => Ok(false),
+            Files => files(&args),
+            FilesParallel => files_parallel(&args),
+            Types => types(&args),
+        }?;
+    if matched && (args.quiet() || !messages::errored()) {
+        process::exit(0)
+    } else if messages::errored() {
+        process::exit(2)
+    } else {
+        process::exit(1)
     }
 }
 
 /// The top-level entry point for single-threaded search. This recursively
 /// steps through the file list (current directory by default) and searches
 /// each file sequentially.
-fn search(args: Args) -> Result<bool> {
+fn search(args: &Args) -> Result<bool> {
     let started_at = Instant::now();
     let quit_after_match = args.quit_after_match()?;
     let subject_builder = args.subject_builder();
@@ -68,7 +72,7 @@ fn search(args: Args) -> Result<bool> {
                 if err.kind() == io::ErrorKind::BrokenPipe {
                     break;
                 }
-                message!("{}: {}", subject.path().display(), err);
+                err_message!("{}: {}", subject.path().display(), err);
                 continue;
             }
         };
@@ -91,7 +95,7 @@ fn search(args: Args) -> Result<bool> {
 /// The top-level entry point for multi-threaded search. The parallelism is
 /// itself achieved by the recursive directory traversal. All we need to do is
 /// feed it a worker for performing a search on each file.
-fn search_parallel(args: Args) -> Result<bool> {
+fn search_parallel(args: &Args) -> Result<bool> {
     use std::sync::atomic::AtomicBool;
     use std::sync::atomic::Ordering::SeqCst;
 
@@ -127,7 +131,7 @@ fn search_parallel(args: Args) -> Result<bool> {
             let search_result = match searcher.search(&subject) {
                 Ok(search_result) => search_result,
                 Err(err) => {
-                    message!("{}: {}", subject.path().display(), err);
+                    err_message!("{}: {}", subject.path().display(), err);
                     return WalkState::Continue;
                 }
             };
@@ -144,7 +148,7 @@ fn search_parallel(args: Args) -> Result<bool> {
                     return WalkState::Quit;
                 }
                 // Otherwise, we continue on our merry way.
-                message!("{}: {}", subject.path().display(), err);
+                err_message!("{}: {}", subject.path().display(), err);
             }
             if matched.load(SeqCst) && quit_after_match {
                 WalkState::Quit
@@ -169,7 +173,7 @@ fn search_parallel(args: Args) -> Result<bool> {
 /// The top-level entry point for listing files without searching them. This
 /// recursively steps through the file list (current directory by default) and
 /// prints each path sequentially using a single thread.
-fn files(args: Args) -> Result<bool> {
+fn files(args: &Args) -> Result<bool> {
     let quit_after_match = args.quit_after_match()?;
     let subject_builder = args.subject_builder();
     let mut matched = false;
@@ -199,7 +203,7 @@ fn files(args: Args) -> Result<bool> {
 /// The top-level entry point for listing files without searching them. This
 /// recursively steps through the file list (current directory by default) and
 /// prints each path sequentially using multiple threads.
-fn files_parallel(args: Args) -> Result<bool> {
+fn files_parallel(args: &Args) -> Result<bool> {
     use std::sync::atomic::AtomicBool;
     use std::sync::atomic::Ordering::SeqCst;
     use std::sync::mpsc;
@@ -251,7 +255,7 @@ fn files_parallel(args: Args) -> Result<bool> {
 }
 
 /// The top-level entry point for --type-list.
-fn types(args: Args) -> Result<bool> {
+fn types(args: &Args) -> Result<bool> {
     let mut count = 0;
     let mut stdout = args.stdout();
     for def in args.type_defs()? {
