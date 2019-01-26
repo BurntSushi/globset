@@ -592,6 +592,11 @@ rgtest!(r1130, |dir: Dir, mut cmd: TestCommand| {
     );
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/1159
+rgtest!(r1159, |_: Dir, mut cmd: TestCommand| {
+    cmd.arg("--wat").assert_exit_code(2);
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1163
 rgtest!(r1163, |dir: Dir, mut cmd: TestCommand| {
     dir.create("bom.txt", "\u{FEFF}test123\ntest123");

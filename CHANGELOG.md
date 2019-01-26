@@ -37,6 +37,9 @@ Bug fixes:
   Fix handling of literal slashes in gitignore patterns.
 * [BUG #1121](https://github.com/BurntSushi/ripgrep/issues/1121):
   Fix bug that was triggering Windows antimalware when using the --files flag.
+* [BUG #1125](https://github.com/BurntSushi/ripgrep/issues/1125),
+  [BUG #1159](https://github.com/BurntSushi/ripgrep/issues/1159):
+  ripgrep shouldn't panic for `rg -h | rg` and should emit correct exit status.
 * [BUG #1173](https://github.com/BurntSushi/ripgrep/issues/1173):
   Fix handling of `**` patterns in gitignore files.
 * [BUG #1174](https://github.com/BurntSushi/ripgrep/issues/1174):

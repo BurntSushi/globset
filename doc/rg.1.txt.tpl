@@ -89,7 +89,8 @@ cases, the flag specified last takes precedence.
 EXIT STATUS
 -----------
 If ripgrep finds a match, then the exit status of the program is 0. If no match
-could be found, then the exit status is non-zero.
+could be found, then the exit status is 1. If an error occurred, then the exit
+status is 2.
 
 
 CONFIGURATION FILES
