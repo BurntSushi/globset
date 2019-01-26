@@ -34,12 +34,12 @@ files/directories and binary files.
 ripgrep's default regex engine uses finite automata and guarantees linear
 time searching. Because of this, features like backreferences and arbitrary
 look-around are not supported. However, if ripgrep is built with PCRE2, then
-the --pcre2 flag can be used to enable backreferences and look-around.
+the *--pcre2* flag can be used to enable backreferences and look-around.
 
-ripgrep supports configuration files. Set RIPGREP_CONFIG_PATH to a
+ripgrep supports configuration files. Set *RIPGREP_CONFIG_PATH* to a
 configuration file. The file can specify one shell argument per line. Lines
-starting with '#' are ignored. For more details, see the man page or the
-README.
+starting with *#* are ignored. For more details, see the man page or the
+*README*.
 
 
 REGEX SYNTAX
@@ -52,10 +52,10 @@ https://docs.rs/regex/*/regex/bytes/index.html#syntax
 
 To a first approximation, ripgrep uses Perl-like regexes without look-around or
 backreferences. This makes them very similar to the "extended" (ERE) regular
-expressions supported by `egrep`, but with a few additional features like
+expressions supported by *egrep*, but with a few additional features like
 Unicode character classes.
 
-If you're using ripgrep with the --pcre2 flag, then please consult
+If you're using ripgrep with the *--pcre2* flag, then please consult
 https://www.pcre.org or the PCRE2 man pages for documentation on the supported
 syntax.
 
@@ -73,6 +73,16 @@ _PATH_::
 
 OPTIONS
 -------
+Note that for many options, there exist flags to disable them. In some cases,
+those flags are not listed in a first class way below. For example, the
+*--column* flag (listed below) enables column numbers in ripgrep's output, but
+the *--no-column* flag (not listed below) disables them. The reverse can also
+exist. For example, the *--no-ignore* flag (listed below) disables ripgrep's
+*gitignore* logic, but the *--ignore* flag (not listed below) enables it. These
+flags are useful for overriding a ripgrep configuration file on the command
+line. Each flag's documentation notes whether an inverted flag exists. In all
+cases, the flag specified last takes precedence.
+
 {OPTIONS}
 
 
@@ -89,11 +99,11 @@ behavior. The format of the configuration file is an "rc" style and is very
 simple. It is defined by two rules:
 
     1. Every line is a shell argument, after trimming ASCII whitespace.
-    2. Lines starting with _#_ (optionally preceded by any amount of
+    2. Lines starting with *#* (optionally preceded by any amount of
        ASCII whitespace) are ignored.
 
 ripgrep will look for a single configuration file if and only if the
-_RIPGREP_CONFIG_PATH_ environment variable is set and is non-empty.
+*RIPGREP_CONFIG_PATH* environment variable is set and is non-empty.
 ripgrep will parse shell arguments from this file on startup and will
 behave as if the arguments in this file were prepended to any explicit
 arguments given to ripgrep on the command line.
@@ -155,20 +165,20 @@ SHELL COMPLETION
 Shell completion files are included in the release tarball for Bash, Fish, Zsh
 and PowerShell.
 
-For *bash*, move `rg.bash` to `$XDG_CONFIG_HOME/bash_completion`
-or `/etc/bash_completion.d/`.
+For *bash*, move *rg.bash* to *$XDG_CONFIG_HOME/bash_completion*
+or */etc/bash_completion.d/*.
 
-For *fish*, move `rg.fish` to `$HOME/.config/fish/completions`.
+For *fish*, move *rg.fish* to *$HOME/.config/fish/completions*.
 
-For *zsh*, move `_rg` to one of your `$fpath` directories.
+For *zsh*, move *_rg* to one of your *$fpath* directories.
 
 
 CAVEATS
 -------
 ripgrep may abort unexpectedly when using default settings if it searches a
 file that is simultaneously truncated. This behavior can be avoided by passing
-the --no-mmap flag which will forcefully disable the use of memory maps in all
-cases.
+the *--no-mmap* flag which will forcefully disable the use of memory maps in
+all cases.
 
 
 VERSION
@@ -180,7 +190,11 @@ HOMEPAGE
 --------
 https://github.com/BurntSushi/ripgrep
 
-Please report bugs and feature requests in the issue tracker.
+Please report bugs and feature requests in the issue tracker. Please do your
+best to provide a reproducible test case for bugs. This should include the
+corpus being searched, the *rg* command, the actual output and the expected
+output. Please also include the output of running the same *rg* command but
+with the *--debug* flag.
 
 
 AUTHORS
