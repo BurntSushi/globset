@@ -16,6 +16,6 @@ license = "Unlicense/MIT"
 log = "0.4.5"
 grep-matcher = { version = "0.1.1", path = "../grep-matcher" }
 regex = "1.1"
-regex-syntax = "0.6.4"
+regex-syntax = "0.6.5"
 thread_local = "0.3.6"
 utf8-ranges = "1.0.1"

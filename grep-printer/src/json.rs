@@ -817,7 +817,8 @@ impl<'a> SubMatches<'a> {
 
 #[cfg(test)]
 mod tests {
-    use grep_regex::RegexMatcher;
+    use grep_regex::{RegexMatcher, RegexMatcherBuilder};
+    use grep_matcher::LineTerminator;
     use grep_searcher::SearcherBuilder;
 
     use super::{JSON, JSONBuilder};
@@ -917,5 +918,46 @@ and exhibited clearly, with a label attached.\
 
         assert_eq!(got.lines().count(), 2);
         assert!(got.contains("begin") && got.contains("end"));
+    }
+
+    #[test]
+    fn missing_crlf() {
+        let haystack = "test\r\n".as_bytes();
+
+        let matcher = RegexMatcherBuilder::new()
+            .build("test")
+            .unwrap();
+        let mut printer = JSONBuilder::new()
+            .build(vec![]);
+        SearcherBuilder::new()
+            .build()
+            .search_reader(&matcher, haystack, printer.sink(&matcher))
+            .unwrap();
+        let got = printer_contents(&mut printer);
+        assert_eq!(got.lines().count(), 3);
+        assert!(
+            got.lines().nth(1).unwrap().contains(r"test\r\n"),
+            r"missing 'test\r\n' in '{}'",
+            got.lines().nth(1).unwrap(),
+        );
+
+        let matcher = RegexMatcherBuilder::new()
+            .crlf(true)
+            .build("test")
+            .unwrap();
+        let mut printer = JSONBuilder::new()
+            .build(vec![]);
+        SearcherBuilder::new()
+            .line_terminator(LineTerminator::crlf())
+            .build()
+            .search_reader(&matcher, haystack, printer.sink(&matcher))
+            .unwrap();
+        let got = printer_contents(&mut printer);
+        assert_eq!(got.lines().count(), 3);
+        assert!(
+            got.lines().nth(1).unwrap().contains(r"test\r\n"),
+            r"missing 'test\r\n' in '{}'",
+            got.lines().nth(1).unwrap(),
+        );
     }
 }

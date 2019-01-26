@@ -1,4 +1,104 @@
+use std::collections::HashMap;
+
+use grep_matcher::{Match, Matcher, NoError};
+use regex::bytes::Regex;
 use regex_syntax::hir::{self, Hir, HirKind};
+
+use config::ConfiguredHIR;
+use error::Error;
+use matcher::RegexCaptures;
+
+/// A matcher for implementing "word match" semantics.
+#[derive(Clone, Debug)]
+pub struct CRLFMatcher {
+    /// The regex.
+    regex: Regex,
+    /// A map from capture group name to capture group index.
+    names: HashMap<String, usize>,
+}
+
+impl CRLFMatcher {
+    /// Create a new matcher from the given pattern that strips `\r` from the
+    /// end of every match.
+    ///
+    /// This panics if the given expression doesn't need its CRLF stripped.
+    pub fn new(expr: &ConfiguredHIR) -> Result<CRLFMatcher, Error> {
+        assert!(expr.needs_crlf_stripped());
+
+        let regex = expr.regex()?;
+        let mut names = HashMap::new();
+        for (i, optional_name) in regex.capture_names().enumerate() {
+            if let Some(name) = optional_name {
+                names.insert(name.to_string(), i.checked_sub(1).unwrap());
+            }
+        }
+        Ok(CRLFMatcher { regex, names })
+    }
+}
+
+impl Matcher for CRLFMatcher {
+    type Captures = RegexCaptures;
+    type Error = NoError;
+
+    fn find_at(
+        &self,
+        haystack: &[u8],
+        at: usize,
+    ) -> Result<Option<Match>, NoError> {
+        let m = match self.regex.find_at(haystack, at) {
+            None => return Ok(None),
+            Some(m) => Match::new(m.start(), m.end()),
+        };
+        Ok(Some(adjust_match(haystack, m)))
+    }
+
+    fn new_captures(&self) -> Result<RegexCaptures, NoError> {
+        Ok(RegexCaptures::new(self.regex.capture_locations()))
+    }
+
+    fn capture_count(&self) -> usize {
+        self.regex.captures_len().checked_sub(1).unwrap()
+    }
+
+    fn capture_index(&self, name: &str) -> Option<usize> {
+        self.names.get(name).map(|i| *i)
+    }
+
+    fn captures_at(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        caps: &mut RegexCaptures,
+    ) -> Result<bool, NoError> {
+        caps.strip_crlf(false);
+        let r = self.regex.captures_read_at(caps.locations(), haystack, at);
+        if !r.is_some() {
+            return Ok(false);
+        }
+
+        // If the end of our match includes a `\r`, then strip it from all
+        // capture groups ending at the same location.
+        let end = caps.locations().get(0).unwrap().1;
+        if end > 0 && haystack.get(end - 1) == Some(&b'\r') {
+            caps.strip_crlf(true);
+        }
+        Ok(true)
+    }
+
+    // We specifically do not implement other methods like find_iter or
+    // captures_iter. Namely, the iter methods are guaranteed to be correct
+    // by virtue of implementing find_at and captures_at above.
+}
+
+/// If the given match ends with a `\r`, then return a new match that ends
+/// immediately before the `\r`.
+pub fn adjust_match(haystack: &[u8], m: Match) -> Match {
+    if m.end() > 0 && haystack.get(m.end() - 1) == Some(&b'\r') {
+        m.with_end(m.end() - 1)
+    } else {
+        m
+    }
+}
 
 /// Substitutes all occurrences of multi-line enabled `$` with `(?:\r?$)`.
 ///

@@ -424,16 +424,7 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
         }
         self.count_lines(buf, range.start());
         let offset = self.absolute_byte_offset + range.start() as u64;
-        let linebuf =
-            if self.config.line_term.is_crlf() {
-                // Normally, a line terminator is never part of a match, but
-                // if the line terminator is CRLF, then it's possible for `\r`
-                // to end up in the match, which we generally don't want. So
-                // we strip it here.
-                lines::without_terminator(&buf[*range], self.config.line_term)
-            } else {
-                &buf[*range]
-            };
+        let linebuf = &buf[*range];
         let keepgoing = self.sink.matched(
             &self.searcher,
             &SinkMatch {

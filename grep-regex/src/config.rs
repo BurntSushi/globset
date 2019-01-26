@@ -160,6 +160,14 @@ impl ConfiguredHIR {
         non_matching_bytes(&self.expr)
     }
 
+    /// Returns true if and only if this regex needs to have its match offsets
+    /// tweaked because of CRLF support. Specifically, this occurs when the
+    /// CRLF hack is enabled and the regex is line anchored at the end. In
+    /// this case, matches that end with a `\r` have the `\r` stripped.
+    pub fn needs_crlf_stripped(&self) -> bool {
+        self.config.crlf && self.expr.is_line_anchored_end()
+    }
+
     /// Builds a regular expression from this HIR expression.
     pub fn regex(&self) -> Result<Regex, Error> {
         self.pattern_to_regex(&self.expr.to_string())

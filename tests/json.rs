@@ -153,7 +153,10 @@ rgtest!(basic, |dir: Dir, mut cmd: TestCommand| {
         msgs[1].unwrap_context(),
         Context {
             path: Some(Data::text("sherlock")),
-            lines: Data::text("Holmeses, success in the province of detective work must always\n"),
+            lines: Data::text(
+                "Holmeses, success in the province of \
+                 detective work must always\n",
+            ),
             line_number: Some(2),
             absolute_offset: 65,
             submatches: vec![],
@@ -163,7 +166,10 @@ rgtest!(basic, |dir: Dir, mut cmd: TestCommand| {
         msgs[2].unwrap_match(),
         Match {
             path: Some(Data::text("sherlock")),
-            lines: Data::text("be, to a very large extent, the result of luck. Sherlock Holmes\n"),
+            lines: Data::text(
+                "be, to a very large extent, the result of luck. \
+                 Sherlock Holmes\n",
+            ),
             line_number: Some(3),
             absolute_offset: 129,
             submatches: vec![
@@ -212,7 +218,9 @@ rgtest!(notutf8, |dir: Dir, mut cmd: TestCommand| {
     let contents = &b"quux\xFFbaz"[..];
 
     // APFS does not support creating files with invalid UTF-8 bytes, so just
-    // skip the test if we can't create our file.
+    // skip the test if we can't create our file. Presumably we don't need this
+    // check if we're already skipping it on macOS, but maybe other file
+    // systems won't like this test either?
     if !dir.try_create_bytes(OsStr::from_bytes(name), contents).is_ok() {
         return;
     }
@@ -304,4 +312,53 @@ rgtest!(crlf, |dir: Dir, mut cmd: TestCommand| {
             end: 64,
         },
     );
+});
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1095
+//
+// This test checks that we don't drop the \r\n in a matching line when --crlf
+// mode is enabled.
+rgtest!(r1095_missing_crlf, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("foo", "test\r\n");
+
+    // Check without --crlf flag.
+    let msgs = json_decode(&cmd.arg("--json").arg("test").stdout());
+    assert_eq!(msgs.len(), 4);
+    assert_eq!(msgs[1].unwrap_match().lines, Data::text("test\r\n"));
+
+    // Now check with --crlf flag.
+    let msgs = json_decode(&cmd.arg("--crlf").stdout());
+    assert_eq!(msgs.len(), 4);
+    assert_eq!(msgs[1].unwrap_match().lines, Data::text("test\r\n"));
+});
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1095
+//
+// This test checks that we don't return empty submatches when matching a `\n`
+// in CRLF mode.
+rgtest!(r1095_crlf_empty_match, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("foo", "test\r\n\n");
+
+    // Check without --crlf flag.
+    let msgs = json_decode(&cmd.arg("-U").arg("--json").arg("\n").stdout());
+    assert_eq!(msgs.len(), 5);
+
+    let m = msgs[1].unwrap_match();
+    assert_eq!(m.lines, Data::text("test\r\n"));
+    assert_eq!(m.submatches[0].m, Data::text("\n"));
+
+    let m = msgs[2].unwrap_match();
+    assert_eq!(m.lines, Data::text("\n"));
+    assert_eq!(m.submatches[0].m, Data::text("\n"));
+
+    // Now check with --crlf flag.
+    let msgs = json_decode(&cmd.arg("--crlf").stdout());
+
+    let m = msgs[1].unwrap_match();
+    assert_eq!(m.lines, Data::text("test\r\n"));
+    assert_eq!(m.submatches[0].m, Data::text("\n"));
+
+    let m = msgs[2].unwrap_match();
+    assert_eq!(m.lines, Data::text("\n"));
+    assert_eq!(m.submatches[0].m, Data::text("\n"));
 });
