@@ -982,9 +982,14 @@ fn flag_encoding(args: &mut Vec<RGArg>) {
     const LONG: &str = long!("\
 Specify the text encoding that ripgrep will use on all files searched. The
 default value is 'auto', which will cause ripgrep to do a best effort automatic
-detection of encoding on a per-file basis. Other supported values can be found
-in the list of labels here:
+detection of encoding on a per-file basis. Automatic detection in this case
+only applies to files that begin with a UTF-8 or UTF-16 byte-order mark (BOM).
+No other automatic detection is performend.
+
+Other supported values can be found in the list of labels here:
 https://encoding.spec.whatwg.org/#concept-encoding-get
+
+For more details on encoding and how ripgrep deals with it, see GUIDE.md.
 
 This flag can be disabled with --no-encoding.
 ");

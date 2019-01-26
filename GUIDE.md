@@ -609,7 +609,8 @@ topic, but we can try to summarize its relevancy to ripgrep:
   the most popular encodings likely consist of ASCII, latin1 or UTF-8. As
   a special exception, UTF-16 is prevalent in Windows environments
 
-In light of the above, here is how ripgrep behaves:
+In light of the above, here is how ripgrep behaves when `--encoding auto` is
+given, which is the default:
 
 * All input is assumed to be ASCII compatible (which means every byte that
   corresponds to an ASCII codepoint actually is an ASCII codepoint). This

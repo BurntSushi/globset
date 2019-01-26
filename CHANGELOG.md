@@ -27,6 +27,8 @@ Bug fixes:
   `**` is now accepted as valid syntax anywhere in a glob.
 * [BUG #1095](https://github.com/BurntSushi/ripgrep/issues/1095):
   Fix corner cases involving the `--crlf` flag.
+* [BUG #1103](https://github.com/BurntSushi/ripgrep/issues/1103):
+  Clarify what `--encoding auto` does.
 * [BUG #1106](https://github.com/BurntSushi/ripgrep/issues/1106):
   `--files-with-matches` and `--files-without-match` work with one file.
 * [BUG #1093](https://github.com/BurntSushi/ripgrep/pull/1093):
