@@ -1212,8 +1212,7 @@ directly on the command line, then used -g instead.
 }
 
 fn flag_ignore_file_case_insensitive(args: &mut Vec<RGArg>) {
-    const SHORT: &str =
-        "Process ignore files (.gitignore, .ignore, etc.) case insensitively.";
+    const SHORT: &str = "Process ignore files case insensitively.";
     const LONG: &str = long!("\
 Process ignore files (.gitignore, .ignore, etc.) case insensitively. Note that
 this comes with a performance penalty and is most useful on case insensitive
