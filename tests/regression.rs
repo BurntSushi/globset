@@ -672,3 +672,25 @@ rgtest!(r1174, |dir: Dir, mut cmd: TestCommand| {
     dir.create("a/foo", "test");
     cmd.arg("test").assert_err();
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1176
+rgtest!(r1176_literal_file, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("patterns", "foo(bar\n");
+    dir.create("test", "foo(bar");
+
+    eqnice!(
+        "foo(bar\n",
+        cmd.arg("-F").arg("-f").arg("patterns").arg("test").stdout()
+    );
+});
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1176
+rgtest!(r1176_line_regex, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("patterns", "foo\n");
+    dir.create("test", "foobar\nfoo\nbarfoo\n");
+
+    eqnice!(
+        "foo\n",
+        cmd.arg("-x").arg("-f").arg("patterns").arg("test").stdout()
+    );
+});

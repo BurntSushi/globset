@@ -1271,9 +1271,15 @@ impl ArgMatches {
         if let Some(paths) = self.values_of_os("file") {
             for path in paths {
                 if path == "-" {
-                    pats.extend(cli::patterns_from_stdin()?);
+                    pats.extend(cli::patterns_from_stdin()?
+                        .into_iter()
+                        .map(|p| self.pattern_from_string(p))
+                    );
                 } else {
-                    pats.extend(cli::patterns_from_path(path)?);
+                    pats.extend(cli::patterns_from_path(path)?
+                        .into_iter()
+                        .map(|p| self.pattern_from_string(p))
+                    );
                 }
             }
         }
@@ -1302,13 +1308,17 @@ impl ArgMatches {
     /// Converts a &str pattern to a String pattern. The pattern is escaped
     /// if -F/--fixed-strings is set.
     fn pattern_from_str(&self, pat: &str) -> String {
-        let litpat = self.pattern_literal(pat.to_string());
-        let s = self.pattern_line(litpat);
+        self.pattern_from_string(pat.to_string())
+    }
 
-        if s.is_empty() {
+    /// Applies additional processing on the given pattern if necessary
+    /// (such as escaping meta characters or turning it into a line regex).
+    fn pattern_from_string(&self, pat: String) -> String {
+        let pat = self.pattern_line(self.pattern_literal(pat));
+        if pat.is_empty() {
             self.pattern_empty()
         } else {
-            s
+            pat
         }
     }
 

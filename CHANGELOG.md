@@ -53,6 +53,8 @@ Bug fixes:
   Fix handling of `**` patterns in gitignore files.
 * [BUG #1174](https://github.com/BurntSushi/ripgrep/issues/1174):
   Fix handling of repeated `**` patterns in gitignore files.
+* [BUG #1176](https://github.com/BurntSushi/ripgrep/issues/1176):
+  Fix bug where `-F`/`-x` weren't applied to patterns given via `-f`.
 
 
 0.10.0 (2018-09-07)
