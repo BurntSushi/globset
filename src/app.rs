@@ -586,6 +586,7 @@ pub fn all_args_and_flags() -> Vec<RGArg> {
     flag_multiline_dotall(&mut args);
     flag_no_config(&mut args);
     flag_no_ignore(&mut args);
+    flag_no_ignore_dot(&mut args);
     flag_no_ignore_global(&mut args);
     flag_no_ignore_messages(&mut args);
     flag_no_ignore_parent(&mut args);
@@ -1558,7 +1559,7 @@ fn flag_no_ignore(args: &mut Vec<RGArg>) {
     const SHORT: &str = "Don't respect ignore files.";
     const LONG: &str = long!("\
 Don't respect ignore files (.gitignore, .ignore, etc.). This implies
---no-ignore-parent and --no-ignore-vcs.
+--no-ignore-parent, --no-ignore-dot and --no-ignore-vcs.
 
 This flag can be disabled with the --ignore flag.
 ");
@@ -1570,6 +1571,24 @@ This flag can be disabled with the --ignore flag.
     let arg = RGArg::switch("ignore")
         .hidden()
         .overrides("no-ignore");
+    args.push(arg);
+}
+
+fn flag_no_ignore_dot(args: &mut Vec<RGArg>) {
+    const SHORT: &str = "Don't respect .ignore files.";
+    const LONG: &str = long!("\
+Don't respect .ignore files.
+
+This flag can be disabled with the --ignore-dot flag.
+");
+    let arg = RGArg::switch("no-ignore-dot")
+        .help(SHORT).long_help(LONG)
+        .overrides("ignore-dot");
+    args.push(arg);
+
+    let arg = RGArg::switch("ignore-dot")
+        .hidden()
+        .overrides("no-ignore-dot");
     args.push(arg);
 }
 

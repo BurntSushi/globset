@@ -629,3 +629,19 @@ rgtest!(f993_null_data, |dir: Dir, mut cmd: TestCommand| {
     let expected = "foo\x00bar\x00baz\x00";
     eqnice!(expected, cmd.stdout());
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1138
+rgtest!(f1138_no_ignore_dot, |dir: Dir, mut cmd: TestCommand| {
+    dir.create_dir(".git");
+    dir.create(".gitignore", "foo");
+    dir.create(".ignore", "bar");
+    dir.create(".fzf-ignore", "quux");
+    dir.create("foo", "");
+    dir.create("bar", "");
+    dir.create("quux", "");
+
+    cmd.arg("--sort").arg("path").arg("--files");
+    eqnice!("quux\n", cmd.stdout());
+    eqnice!("bar\nquux\n", cmd.arg("--no-ignore-dot").stdout());
+    eqnice!("bar\n", cmd.arg("--ignore-file").arg(".fzf-ignore").stdout());
+});

@@ -112,8 +112,8 @@ _rg() {
     $no"--no-hidden[don't search hidden files and directories]"
 
     + '(ignore)' # Ignore-file options
-    "(--no-ignore-global --no-ignore-parent --no-ignore-vcs)--no-ignore[don't respect ignore files]"
-    $no'(--ignore-global --ignore-parent --ignore-vcs)--ignore[respect ignore files]'
+    "(--no-ignore-global --no-ignore-parent --no-ignore-vcs --no-ignore-dot)--no-ignore[don't respect ignore files]"
+    $no'(--ignore-global --ignore-parent --ignore-vcs --ignore-dot)--ignore[respect ignore files]'
 
     + '(ignore-file-case-insensitive)' # Ignore-file case sensitivity options
     '--ignore-file-case-insensitive[process ignore files case insensitively]'
@@ -130,6 +130,10 @@ _rg() {
     + '(ignore-vcs)' # VCS ignore-file options
     "--no-ignore-vcs[don't respect version control ignore files]"
     $no'--ignore-vcs[respect version control ignore files]'
+
+    + '(ignore-dot)' # .ignore-file options
+    "--no-ignore-dot[don't respect .ignore files]"
+    $no'--ignore-dot[respect .ignore files]'
 
     + '(json)' # JSON options
     '--json[output results in JSON Lines format]'

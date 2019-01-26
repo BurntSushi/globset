@@ -15,6 +15,8 @@ Feature enhancements:
 
 * [FEATURE #1099](https://github.com/BurntSushi/ripgrep/pull/1099):
   Add support for Brotli and Zstd to the `-z/--search-zip` flag.
+* [FEATURE #1138](https://github.com/BurntSushi/ripgrep/pull/1138):
+  Add `--no-ignore-dot` flag for ignoring `.ignore` files.
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
 
