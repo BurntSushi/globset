@@ -49,6 +49,8 @@ Bug fixes:
 * [BUG #1125](https://github.com/BurntSushi/ripgrep/issues/1125),
   [BUG #1159](https://github.com/BurntSushi/ripgrep/issues/1159):
   ripgrep shouldn't panic for `rg -h | rg` and should emit correct exit status.
+* [BUG #1154](https://github.com/BurntSushi/ripgrep/issues/1154):
+  Windows files with "hidden" attribute are now treated as hidden.
 * [BUG #1173](https://github.com/BurntSushi/ripgrep/issues/1173):
   Fix handling of `**` patterns in gitignore files.
 * [BUG #1174](https://github.com/BurntSushi/ripgrep/issues/1174):
