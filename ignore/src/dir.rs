@@ -22,6 +22,7 @@ use gitignore::{self, Gitignore, GitignoreBuilder};
 use pathutil::{is_hidden, strip_prefix};
 use overrides::{self, Override};
 use types::{self, Types};
+use walk::DirEntry;
 use {Error, Match, PartialErrorBuilder};
 
 /// IgnoreMatch represents information about where a match came from when using
@@ -306,11 +307,23 @@ impl Ignore {
                     || has_explicit_ignores
     }
 
+    /// Like `matched`, but works with a directory entry instead.
+    pub fn matched_dir_entry<'a>(
+        &'a self,
+        dent: &DirEntry,
+    ) -> Match<IgnoreMatch<'a>> {
+        let m = self.matched(dent.path(), dent.is_dir());
+        if m.is_none() && self.0.opts.hidden && is_hidden(dent) {
+            return Match::Ignore(IgnoreMatch::hidden());
+        }
+        m
+    }
+
     /// Returns a match indicating whether the given file path should be
     /// ignored or not.
     ///
     /// The match contains information about its origin.
-    pub fn matched<'a, P: AsRef<Path>>(
+    fn matched<'a, P: AsRef<Path>>(
         &'a self,
         path: P,
         is_dir: bool,
@@ -350,9 +363,6 @@ impl Ignore {
             } else if mat.is_whitelist() {
                 whitelisted = mat;
             }
-        }
-        if whitelisted.is_none() && self.0.opts.hidden && is_hidden(path) {
-            return Match::Ignore(IgnoreMatch::hidden());
         }
         whitelisted
     }

@@ -29,7 +29,7 @@ thread_local = "0.3.6"
 walkdir = "2.2.7"
 
 [target.'cfg(windows)'.dependencies.winapi-util]
-version = "0.1.1"
+version = "0.1.2"
 
 [dev-dependencies]
 tempfile = "3.0.5"

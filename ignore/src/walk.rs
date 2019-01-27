@@ -99,7 +99,7 @@ impl DirEntry {
     }
 
     /// Returns true if and only if this entry points to a directory.
-    fn is_dir(&self) -> bool {
+    pub(crate) fn is_dir(&self) -> bool {
         self.dent.is_dir()
     }
 
@@ -883,16 +883,17 @@ impl Walk {
                 return Ok(true);
             }
         }
-        let is_dir = ent.file_type().map_or(false, |ft| ft.is_dir());
-        let max_size = self.max_filesize;
-        let should_skip_path = skip_path(&self.ig, ent.path(), is_dir);
-        let should_skip_filesize = if !is_dir && max_size.is_some() {
-            skip_filesize(max_size.unwrap(), ent.path(), &ent.metadata().ok())
-        } else {
-            false
-        };
-
-        Ok(should_skip_path || should_skip_filesize)
+        if should_skip_entry(&self.ig, ent) {
+            return Ok(true);
+        }
+        if self.max_filesize.is_some() && !ent.is_dir() {
+            return Ok(skip_filesize(
+                self.max_filesize.unwrap(),
+                ent.path(),
+                &ent.metadata().ok(),
+            ));
+        }
+        Ok(false)
     }
 }
 
@@ -1420,13 +1421,11 @@ impl Worker {
                 return WalkState::Continue;
             }
         }
-        let is_dir = dent.is_dir();
-        let max_size = self.max_filesize;
-        let should_skip_path = skip_path(ig, dent.path(), is_dir);
+        let should_skip_path = should_skip_entry(ig, &dent);
         let should_skip_filesize =
-            if !is_dir && max_size.is_some() {
+            if self.max_filesize.is_some() && !dent.is_dir() {
                 skip_filesize(
-                    max_size.unwrap(),
+                    self.max_filesize.unwrap(),
                     dent.path(),
                     &dent.metadata().ok(),
                 )
@@ -1609,17 +1608,16 @@ fn skip_filesize(
     }
 }
 
-fn skip_path(
+fn should_skip_entry(
     ig: &Ignore,
-    path: &Path,
-    is_dir: bool,
+    dent: &DirEntry,
 ) -> bool {
-    let m = ig.matched(path, is_dir);
+    let m = ig.matched_dir_entry(dent);
     if m.is_ignore() {
-        debug!("ignoring {}: {:?}", path.display(), m);
+        debug!("ignoring {}: {:?}", dent.path().display(), m);
         true
     } else if m.is_whitelist() {
-        debug!("whitelisting {}: {:?}", path.display(), m);
+        debug!("whitelisting {}: {:?}", dent.path().display(), m);
         false
     } else {
         false
