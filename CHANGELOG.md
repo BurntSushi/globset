@@ -34,6 +34,8 @@ Bug fixes:
 * [BUG #373](https://github.com/BurntSushi/ripgrep/issues/373),
   [BUG #1098](https://github.com/BurntSushi/ripgrep/issues/1098):
   `**` is now accepted as valid syntax anywhere in a glob.
+* [BUG #916](https://github.com/BurntSushi/ripgrep/issues/916):
+  ripgrep no longer hangs when searching `/proc` with a zombie process present.
 * [BUG #1091](https://github.com/BurntSushi/ripgrep/issues/1091):
   Add note about inverted flags to the man page.
 * [BUG #1095](https://github.com/BurntSushi/ripgrep/issues/1095):
