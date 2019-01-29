@@ -1,8 +1,8 @@
-use std::sync::atomic::{ATOMIC_BOOL_INIT, AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static MESSAGES: AtomicBool = ATOMIC_BOOL_INIT;
-static IGNORE_MESSAGES: AtomicBool = ATOMIC_BOOL_INIT;
-static ERRORED: AtomicBool = ATOMIC_BOOL_INIT;
+static MESSAGES: AtomicBool = AtomicBool::new(false);
+static IGNORE_MESSAGES: AtomicBool = AtomicBool::new(false);
+static ERRORED: AtomicBool = AtomicBool::new(false);
 
 /// Emit a non-fatal error message, unless messages were disabled.
 #[macro_export]
