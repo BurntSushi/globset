@@ -375,11 +375,6 @@ $ ./target/release/rg --version
 If you have a Rust nightly compiler and a recent Intel CPU, then you can enable
 additional optional SIMD acceleration like so:
 
-**WARNING**: Building with the `simd-accel` feature on the latest Rust nightly
-does not work because the [`encoding_rs`](https://crates.io/crates/encoding_rs)
-crate hasn't yet migrated to the new SIMD infrastructure, and the old SIMD
-infrastructure no longer works on the latest nightly version of Rust.
-
 ```
 RUSTFLAGS="-C target-cpu=native" cargo build --release --features 'simd-accel'
 ```
@@ -387,7 +382,8 @@ RUSTFLAGS="-C target-cpu=native" cargo build --release --features 'simd-accel'
 The `simd-accel` feature enables SIMD support in certain ripgrep dependencies
 (responsible for transcoding). They are not necessary to get SIMD optimizations
 for search; those are enabled automatically. Hopefully, some day, the
-`simd-accel` feature will similarly become unnecessary.
+`simd-accel` feature will similarly become unnecessary. **WARNING:** Currently,
+enabling this option can increase compilation times dramatically.
 
 Finally, optional PCRE2 support can be built with ripgrep by enabling the
 `pcre2` feature:
