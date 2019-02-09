@@ -109,8 +109,15 @@ impl LineStep {
 }
 
 /// Count the number of occurrences of `line_term` in `bytes`.
+#[cfg(target_endian = "little")]
 pub fn count(bytes: &[u8], line_term: u8) -> u64 {
     bytecount::count(bytes, line_term) as u64
+}
+
+/// Count the number of occurrences of `line_term` in `bytes`.
+#[cfg(target_endian = "big")]
+pub fn count(bytes: &[u8], line_term: u8) -> u64 {
+    bytecount::naive_count(bytes, line_term) as u64
 }
 
 /// Given a line that possibly ends with a terminator, return that line without
