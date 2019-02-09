@@ -5,12 +5,12 @@ use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
-use std::sync::atomic::{ATOMIC_USIZE_INIT, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Duration;
 
 static TEST_DIR: &'static str = "ripgrep-tests";
-static NEXT_ID: AtomicUsize = ATOMIC_USIZE_INIT;
+static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
 
 /// Setup an empty work directory and return a command pointing to the ripgrep
 /// executable whose CWD is set to the work directory.
