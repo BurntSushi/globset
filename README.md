@@ -1,11 +1,12 @@
 ripgrep (rg)
 ------------
 ripgrep is a line-oriented search tool that recursively searches your current
-directory for a regex pattern while respecting your gitignore rules. ripgrep
+directory for a regex pattern. By default, ripgrep will respect your .gitignore
+and automatically skip hidden files/directories and binary files. ripgrep
 has first class support on Windows, macOS and Linux, with binary downloads
 available for [every release](https://github.com/BurntSushi/ripgrep/releases).
-ripgrep is similar to other popular search tools like The Silver Searcher,
-ack and grep.
+ripgrep is similar to other popular search tools like The Silver Searcher, ack
+and grep.
 
 [![Linux build status](https://travis-ci.org/BurntSushi/ripgrep.svg)](https://travis-ci.org/BurntSushi/ripgrep)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/github/BurntSushi/ripgrep?svg=true)](https://ci.appveyor.com/project/BurntSushi/ripgrep)
