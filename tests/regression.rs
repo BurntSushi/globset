@@ -694,3 +694,14 @@ rgtest!(r1176_line_regex, |dir: Dir, mut cmd: TestCommand| {
         cmd.arg("-x").arg("-f").arg("patterns").arg("test").stdout()
     );
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1203
+rgtest!(r1203_reverse_suffix_literal, |dir: Dir, _: TestCommand| {
+    dir.create("test", "153.230000\n");
+
+    let mut cmd = dir.command();
+    eqnice!("153.230000\n", cmd.arg(r"\d\d\d00").arg("test").stdout());
+
+    let mut cmd = dir.command();
+    eqnice!("153.230000\n", cmd.arg(r"\d\d\d000").arg("test").stdout());
+});
