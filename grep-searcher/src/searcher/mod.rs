@@ -155,6 +155,8 @@ pub struct Config {
     /// An encoding that, when present, causes the searcher to transcode all
     /// input from the encoding to UTF-8.
     encoding: Option<Encoding>,
+    /// Whether to do automatic transcoding based on a BOM or not.
+    bom_sniffing: bool,
 }
 
 impl Default for Config {
@@ -171,6 +173,7 @@ impl Default for Config {
             binary: BinaryDetection::default(),
             multi_line: false,
             encoding: None,
+            bom_sniffing: true,
         }
     }
 }
@@ -303,12 +306,15 @@ impl SearcherBuilder {
             config.before_context = 0;
             config.after_context = 0;
         }
+
         let mut decode_builder = DecodeReaderBytesBuilder::new();
         decode_builder
             .encoding(self.config.encoding.as_ref().map(|e| e.0))
             .utf8_passthru(true)
-            .strip_bom(true)
-            .bom_override(true);
+            .strip_bom(self.config.bom_sniffing)
+            .bom_override(true)
+            .bom_sniffing(self.config.bom_sniffing);
+
         Searcher {
             config: config,
             decode_builder: decode_builder,
@@ -506,17 +512,35 @@ impl SearcherBuilder {
     /// transcoding process encounters an error, then bytes are replaced with
     /// the Unicode replacement codepoint.
     ///
-    /// When no encoding is specified (the default), then BOM sniffing is used
-    /// to determine whether the source data is UTF-8 or UTF-16, and
-    /// transcoding will be performed automatically. If no BOM could be found,
-    /// then the source data is searched _as if_ it were UTF-8. However, so
-    /// long as the source data is at least ASCII compatible, then it is
-    /// possible for a search to produce useful results.
+    /// When no encoding is specified (the default), then BOM sniffing is
+    /// used (if it's enabled, which it is, by default) to determine whether
+    /// the source data is UTF-8 or UTF-16, and transcoding will be performed
+    /// automatically. If no BOM could be found, then the source data is
+    /// searched _as if_ it were UTF-8. However, so long as the source data is
+    /// at least ASCII compatible, then it is possible for a search to produce
+    /// useful results.
     pub fn encoding(
         &mut self,
         encoding: Option<Encoding>,
     ) -> &mut SearcherBuilder {
         self.config.encoding = encoding;
+        self
+    }
+
+    /// Enable automatic transcoding based on BOM sniffing.
+    ///
+    /// When this is enabled and an explicit encoding is not set, then this
+    /// searcher will try to detect the encoding of the bytes being searched
+    /// by sniffing its byte-order mark (BOM). In particular, when this is
+    /// enabled, UTF-16 encoded files will be searched seamlessly.
+    ///
+    /// When this is disabled and if an explicit encoding is not set, then
+    /// the bytes from the source stream will be passed through unchanged,
+    /// including its BOM, if one is present.
+    ///
+    /// This is enabled by default.
+    pub fn bom_sniffing(&mut self, yes: bool) -> &mut SearcherBuilder {
+        self.config.bom_sniffing = yes;
         self
     }
 }
@@ -738,7 +762,8 @@ impl Searcher {
 
     /// Returns true if and only if the given slice needs to be transcoded.
     fn slice_needs_transcoding(&self, slice: &[u8]) -> bool {
-        self.config.encoding.is_some() || slice_has_utf16_bom(slice)
+        self.config.encoding.is_some()
+        || (self.config.bom_sniffing && slice_has_utf16_bom(slice))
     }
 }
 

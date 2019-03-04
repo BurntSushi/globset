@@ -114,7 +114,7 @@ dependencies = [
 
 [[package]]
 name = "encoding_rs_io"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "encoding_rs 0.8.17 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -226,7 +226,7 @@ dependencies = [
  "bstr 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytecount 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding_rs 0.8.17 (registry+https://github.com/rust-lang/crates.io-index)",
- "encoding_rs_io 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_rs_io 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "grep-matcher 0.1.1",
  "grep-regex 0.1.2",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -704,7 +704,7 @@ dependencies = [
 "checksum crossbeam-channel 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "0f0ed1a4de2235cabda8558ff5840bffb97fcb64c97827f354a451307df5f72b"
 "checksum crossbeam-utils 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)" = "f8306fcef4a7b563b76b7dd949ca48f52bc1141aa067d2ea09565f3e2652aa5c"
 "checksum encoding_rs 0.8.17 (registry+https://github.com/rust-lang/crates.io-index)" = "4155785c79f2f6701f185eb2e6b4caf0555ec03477cb4c70db67b465311620ed"
-"checksum encoding_rs_io 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "f94ef2bcdb2f5d58e982ef565baa1ecfd04b7cb653d0bf1b49af1dd472faa8d8"
+"checksum encoding_rs_io 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "9619ee7a2bf4e777e020b95c1439abaf008f8ea8041b78a0552c4f1bcf4df32c"
 "checksum fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 "checksum fuchsia-cprng 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 "checksum glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)" = "8be18de09a56b60ed0edf84bc9df007e30040691af7acd1c41874faac5895bfb"

@@ -603,7 +603,7 @@ topic, but we can try to summarize its relevancy to ripgrep:
 * Files are generally just a bundle of bytes. There is no reliable way to know
   their encoding.
 * Either the encoding of the pattern must match the encoding of the files being
-  searched, or a form of transcoding must be performed converts either the
+  searched, or a form of transcoding must be performed that converts either the
   pattern or the file to the same encoding as the other.
 * ripgrep tends to work best on plain text files, and among plain text files,
   the most popular encodings likely consist of ASCII, latin1 or UTF-8. As
@@ -626,12 +626,15 @@ given, which is the default:
   they correspond to a UTF-16 BOM, then ripgrep will transcode the contents of
   the file from UTF-16 to UTF-8, and then execute the search on the transcoded
   version of the file. (This incurs a performance penalty since transcoding
-  is slower than regex searching.)
+  is slower than regex searching.) If the file contains invalid UTF-16, then
+  the Unicode replacement codepoint is substituted in place of invalid code
+  units.
 * To handle other cases, ripgrep provides a `-E/--encoding` flag, which permits
   you to specify an encoding from the
   [Encoding Standard](https://encoding.spec.whatwg.org/#concept-encoding-get).
-  ripgrep will assume *all* files searched are the encoding specified and
-  will perform a transcoding step just like in the UTF-16 case described above.
+  ripgrep will assume *all* files searched are the encoding specified (unless
+  the file has a BOM) and will perform a transcoding step just like in the
+  UTF-16 case described above.
 
 By default, ripgrep will not require its input be valid UTF-8. That is, ripgrep
 can and will search arbitrary bytes. The key here is that if you're searching
@@ -641,9 +644,26 @@ pattern won't find anything. With all that said, this mode of operation is
 important, because it lets you find ASCII or UTF-8 *within* files that are
 otherwise arbitrary bytes.
 
+As a special case, the `-E/--encoding` flag supports the value `none`, which
+will completely disable all encoding related logic, including BOM sniffing.
+When `-E/--encoding` is set to `none`, ripgrep will search the raw bytes of
+the underlying file with no transcoding step. For example, here's how you might
+search the raw UTF-16 encoding of the string `Шерлок`:
+
+```
+$ rg '(?-u)\(\x045\x04@\x04;\x04>\x04:\x04' -E none -a some-utf16-file
+```
+
+Of course, that's just an example meant to show how one can drop down into
+raw bytes. Namely, the simpler command works as you might expect automatically:
+
+```
+$ rg 'Шерлок' some-utf16-file
+```
+
 Finally, it is possible to disable ripgrep's Unicode support from within the
-pattern regular expression. For example, let's say you wanted `.` to match any
-byte rather than any Unicode codepoint. (You might want this while searching a
+regular expression. For example, let's say you wanted `.` to match any byte
+rather than any Unicode codepoint. (You might want this while searching a
 binary file, since `.` by default will not match invalid UTF-8.) You could do
 this by disabling Unicode via a regular expression flag:
 

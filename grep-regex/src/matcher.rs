@@ -52,7 +52,7 @@ impl RegexMatcherBuilder {
         }
 
         let matcher = RegexMatcherImpl::new(&chir)?;
-        trace!("final regex: {:?}", matcher.regex());
+        trace!("final regex: {:?}", matcher.regex().to_string());
         Ok(RegexMatcher {
             config: self.config.clone(),
             matcher: matcher,

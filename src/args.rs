@@ -483,6 +483,37 @@ impl SortByKind {
     }
 }
 
+/// Encoding mode the searcher will use.
+#[derive(Clone, Debug)]
+enum EncodingMode {
+    /// Use an explicit encoding forcefully, but let BOM sniffing override it.
+    Some(Encoding),
+    /// Use only BOM sniffing to auto-detect an encoding.
+    Auto,
+    /// Use no explicit encoding and disable all BOM sniffing. This will
+    /// always result in searching the raw bytes, regardless of their
+    /// true encoding.
+    Disabled,
+}
+
+impl EncodingMode {
+    /// Checks if an explicit encoding has been set. Returns false for
+    /// automatic BOM sniffing and no sniffing.
+    ///
+    /// This is only used to determine whether PCRE2 needs to have its own
+    /// UTF-8 checking enabled. If we have an explicit encoding set, then
+    /// we're always guaranteed to get UTF-8, so we can disable PCRE2's check.
+    /// Otherwise, we have no such guarantee, and must enable PCRE2' UTF-8
+    /// check.
+    #[cfg(feature = "pcre2")]
+    fn has_explicit_encoding(&self) -> bool {
+        match self {
+            EncodingMode::Some(_) => true,
+            _ => false
+        }
+    }
+}
+
 impl ArgMatches {
     /// Create an ArgMatches from clap's parse result.
     fn new(clap_matches: clap::ArgMatches<'static>) -> ArgMatches {
@@ -650,7 +681,7 @@ impl ArgMatches {
         }
         if self.pcre2_unicode() {
             builder.utf(true).ucp(true);
-            if self.encoding()?.is_some() {
+            if self.encoding()?.has_explicit_encoding() {
                 // SAFETY: If an encoding was specified, then we're guaranteed
                 // to get valid UTF-8, so we can disable PCRE2's UTF checking.
                 // (Feeding invalid UTF-8 to PCRE2 is undefined behavior.)
@@ -766,8 +797,16 @@ impl ArgMatches {
             .after_context(ctx_after)
             .passthru(self.is_present("passthru"))
             .memory_map(self.mmap_choice(paths))
-            .binary_detection(self.binary_detection())
-            .encoding(self.encoding()?);
+            .binary_detection(self.binary_detection());
+        match self.encoding()? {
+            EncodingMode::Some(enc) => {
+                builder.encoding(Some(enc));
+            }
+            EncodingMode::Auto => {} // default for the searcher
+            EncodingMode::Disabled => {
+                builder.bom_sniffing(false);
+            }
+        }
         Ok(builder.build())
     }
 
@@ -952,24 +991,30 @@ impl ArgMatches {
         u64_to_usize("dfa-size-limit", r)
     }
 
-    /// Returns the type of encoding to use.
+    /// Returns the encoding mode to use.
     ///
-    /// This only returns an encoding if one is explicitly specified. When no
-    /// encoding is present, the Searcher will still do BOM sniffing for UTF-16
-    /// and transcode seamlessly.
-    fn encoding(&self) -> Result<Option<Encoding>> {
+    /// This only returns an encoding if one is explicitly specified. Otherwise
+    /// if set to automatic, the Searcher will do BOM sniffing for UTF-16
+    /// and transcode seamlessly. If disabled, no BOM sniffing nor transcoding
+    /// will occur.
+    fn encoding(&self) -> Result<EncodingMode> {
         if self.is_present("no-encoding") {
-            return Ok(None);
+            return Ok(EncodingMode::Auto);
         }
+
         let label = match self.value_of_lossy("encoding") {
             None if self.pcre2_unicode() => "utf-8".to_string(),
-            None => return Ok(None),
+            None => return Ok(EncodingMode::Auto),
             Some(label) => label,
         };
+
         if label == "auto" {
-            return Ok(None);
+            return Ok(EncodingMode::Auto);
+        } else if label == "none" {
+            return Ok(EncodingMode::Disabled);
         }
-        Ok(Some(Encoding::new(&label)?))
+
+        Ok(EncodingMode::Some(Encoding::new(&label)?))
     }
 
     /// Return the file separator to use based on the CLI configuration.
