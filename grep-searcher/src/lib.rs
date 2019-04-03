@@ -99,13 +99,13 @@ searches stdin.
 
 #![deny(missing_docs)]
 
+extern crate bstr;
 extern crate bytecount;
 extern crate encoding_rs;
 extern crate encoding_rs_io;
 extern crate grep_matcher;
 #[macro_use]
 extern crate log;
-extern crate memchr;
 extern crate memmap;
 #[cfg(test)]
 extern crate regex;

@@ -1,8 +1,7 @@
 use std::cmp;
 use std::io;
-use std::ptr;
 
-use memchr::{memchr, memrchr};
+use bstr::{BStr, BString};
 
 /// The default buffer capacity that we use for the line buffer.
 pub(crate) const DEFAULT_BUFFER_CAPACITY: usize = 8 * (1<<10); // 8 KB
@@ -123,7 +122,7 @@ impl LineBufferBuilder {
     pub fn build(&self) -> LineBuffer {
         LineBuffer {
             config: self.config,
-            buf: vec![0; self.config.capacity],
+            buf: BString::from(vec![0; self.config.capacity]),
             pos: 0,
             last_lineterm: 0,
             end: 0,
@@ -255,6 +254,12 @@ impl<'b, R: io::Read> LineBufferReader<'b, R> {
 
     /// Return the contents of this buffer.
     pub fn buffer(&self) -> &[u8] {
+        self.line_buffer.buffer().as_bytes()
+    }
+
+    /// Return the underlying buffer as a byte string. Used for tests only.
+    #[cfg(test)]
+    fn bstr(&self) -> &BStr {
         self.line_buffer.buffer()
     }
 
@@ -284,7 +289,7 @@ pub struct LineBuffer {
     /// The configuration of this buffer.
     config: Config,
     /// The primary buffer with which to hold data.
-    buf: Vec<u8>,
+    buf: BString,
     /// The current position of this buffer. This is always a valid sliceable
     /// index into `buf`, and its maximum value is the length of `buf`.
     pos: usize,
@@ -339,13 +344,13 @@ impl LineBuffer {
     }
 
     /// Return the contents of this buffer.
-    fn buffer(&self) -> &[u8] {
+    fn buffer(&self) -> &BStr {
         &self.buf[self.pos..self.last_lineterm]
     }
 
     /// Return the contents of the free space beyond the end of the buffer as
     /// a mutable slice.
-    fn free_buffer(&mut self) -> &mut [u8] {
+    fn free_buffer(&mut self) -> &mut BStr {
         &mut self.buf[self.end..]
     }
 
@@ -396,7 +401,7 @@ impl LineBuffer {
         assert_eq!(self.pos, 0);
         loop {
             self.ensure_capacity()?;
-            let readlen = rdr.read(self.free_buffer())?;
+            let readlen = rdr.read(self.free_buffer().as_bytes_mut())?;
             if readlen == 0 {
                 // We're only done reading for good once the caller has
                 // consumed everything.
@@ -416,7 +421,7 @@ impl LineBuffer {
             match self.config.binary {
                 BinaryDetection::None => {} // nothing to do
                 BinaryDetection::Quit(byte) => {
-                    if let Some(i) = memchr(byte, newbytes) {
+                    if let Some(i) = newbytes.find_byte(byte) {
                         self.end = oldend + i;
                         self.last_lineterm = self.end;
                         self.binary_byte_offset =
@@ -444,7 +449,7 @@ impl LineBuffer {
             }
 
             // Update our `last_lineterm` positions if we read one.
-            if let Some(i) = memrchr(self.config.lineterm, newbytes) {
+            if let Some(i) = newbytes.rfind_byte(self.config.lineterm) {
                 self.last_lineterm = oldend + i + 1;
                 return Ok(true);
             }
@@ -467,40 +472,8 @@ impl LineBuffer {
             return;
         }
 
-        assert!(self.pos < self.end && self.end <= self.buf.len());
         let roll_len = self.end - self.pos;
-        unsafe {
-            // SAFETY: A buffer contains Copy data, so there's no problem
-            // moving it around. Safety also depends on our indices being
-            // in bounds, which they should always be, and we enforce with
-            // an assert above.
-            //
-            // It seems like it should be possible to do this in safe code that
-            // results in the same codegen. I tried the obvious:
-            //
-            //   for (src, dst) in (self.pos..self.end).zip(0..) {
-            //     self.buf[dst] = self.buf[src];
-            //   }
-            //
-            // But the above does not work, and in fact compiles down to a slow
-            // byte-by-byte loop. I tried a few other minor variations, but
-            // alas, better minds might prevail.
-            //
-            // Overall, this doesn't save us *too* much. It mostly matters when
-            // the number of bytes we're copying is large, which can happen
-            // if the searcher is asked to produce a lot of context. We could
-            // decide this isn't worth it, but it does make an appreciable
-            // impact at or around the context=30 range on my machine.
-            //
-            // We could also use a temporary buffer that compiles down to two
-            // memcpys and is faster than the byte-at-a-time loop, but it
-            // complicates our options for limiting memory allocation a bit.
-            ptr::copy(
-                self.buf[self.pos..].as_ptr(),
-                self.buf.as_mut_ptr(),
-                roll_len,
-            );
-        }
+        self.buf.copy_within(self.pos.., 0);
         self.pos = 0;
         self.last_lineterm = roll_len;
         self.end = roll_len;
@@ -536,14 +509,15 @@ impl LineBuffer {
     }
 }
 
-/// Replaces `src` with `replacement` in bytes.
-fn replace_bytes(bytes: &mut [u8], src: u8, replacement: u8) -> Option<usize> {
+/// Replaces `src` with `replacement` in bytes, and return the offset of the
+/// first replacement, if one exists.
+fn replace_bytes(bytes: &mut BStr, src: u8, replacement: u8) -> Option<usize> {
     if src == replacement {
         return None;
     }
     let mut first_pos = None;
     let mut pos = 0;
-    while let Some(i) = memchr(src, &bytes[pos..]).map(|i| pos + i) {
+    while let Some(i) = bytes[pos..].find_byte(src).map(|i| pos + i) {
         if first_pos.is_none() {
             first_pos = Some(i);
         }
@@ -560,6 +534,7 @@ fn replace_bytes(bytes: &mut [u8], src: u8, replacement: u8) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use std::str;
+    use bstr::BString;
     use super::*;
 
     const SHERLOCK: &'static str = "\
@@ -575,18 +550,14 @@ and exhibited clearly, with a label attached.\
         slice.to_string()
     }
 
-    fn btos(slice: &[u8]) -> &str {
-        str::from_utf8(slice).unwrap()
-    }
-
     fn replace_str(
         slice: &str,
         src: u8,
         replacement: u8,
     ) -> (String, Option<usize>) {
-        let mut dst = slice.to_string().into_bytes();
+        let mut dst = BString::from(slice);
         let result = replace_bytes(&mut dst, src, replacement);
-        (String::from_utf8(dst).unwrap(), result)
+        (dst.into_string().unwrap(), result)
     }
 
     #[test]
@@ -607,7 +578,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\n");
+        assert_eq!(rdr.bstr(), "homer\nlisa\n");
         assert_eq!(rdr.absolute_byte_offset(), 0);
         rdr.consume(5);
         assert_eq!(rdr.absolute_byte_offset(), 5);
@@ -615,7 +586,7 @@ and exhibited clearly, with a label attached.\
         assert_eq!(rdr.absolute_byte_offset(), 11);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "maggie");
+        assert_eq!(rdr.bstr(), "maggie");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -630,7 +601,7 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\nmaggie\n");
+        assert_eq!(rdr.bstr(), "homer\nlisa\nmaggie\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -645,7 +616,7 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "\n");
+        assert_eq!(rdr.bstr(), "\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -660,7 +631,7 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "\n\n");
+        assert_eq!(rdr.bstr(), "\n\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -698,12 +669,12 @@ and exhibited clearly, with a label attached.\
         let mut linebuf = LineBufferBuilder::new().capacity(1).build();
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
-        let mut got = vec![];
+        let mut got = BString::new();
         while rdr.fill().unwrap() {
-            got.extend(rdr.buffer());
+            got.push(rdr.buffer());
             rdr.consume_all();
         }
-        assert_eq!(bytes, btos(&got));
+        assert_eq!(bytes, got);
         assert_eq!(rdr.absolute_byte_offset(), bytes.len() as u64);
         assert_eq!(rdr.binary_byte_offset(), None);
     }
@@ -718,11 +689,11 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\n");
+        assert_eq!(rdr.bstr(), "homer\n");
         rdr.consume_all();
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "lisa\n");
+        assert_eq!(rdr.bstr(), "lisa\n");
         rdr.consume_all();
 
         // This returns an error because while we have just enough room to
@@ -732,11 +703,11 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.fill().is_err());
 
         // We can mush on though!
-        assert_eq!(btos(rdr.buffer()), "m");
+        assert_eq!(rdr.bstr(), "m");
         rdr.consume_all();
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "aggie");
+        assert_eq!(rdr.bstr(), "aggie");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -752,16 +723,16 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\n");
+        assert_eq!(rdr.bstr(), "homer\n");
         rdr.consume_all();
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "lisa\n");
+        assert_eq!(rdr.bstr(), "lisa\n");
         rdr.consume_all();
 
         // We have just enough space.
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "maggie");
+        assert_eq!(rdr.bstr(), "maggie");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -777,7 +748,7 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(rdr.fill().is_err());
-        assert_eq!(btos(rdr.buffer()), "");
+        assert_eq!(rdr.bstr(), "");
     }
 
     #[test]
@@ -789,7 +760,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nli\x00sa\nmaggie\n");
+        assert_eq!(rdr.bstr(), "homer\nli\x00sa\nmaggie\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -808,7 +779,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nli");
+        assert_eq!(rdr.bstr(), "homer\nli");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -825,7 +796,7 @@ and exhibited clearly, with a label attached.\
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
         assert!(!rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "");
+        assert_eq!(rdr.bstr(), "");
         assert_eq!(rdr.absolute_byte_offset(), 0);
         assert_eq!(rdr.binary_byte_offset(), Some(0));
     }
@@ -841,7 +812,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\nmaggie\n");
+        assert_eq!(rdr.bstr(), "homer\nlisa\nmaggie\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -860,7 +831,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\nmaggie");
+        assert_eq!(rdr.bstr(), "homer\nlisa\nmaggie");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -878,7 +849,7 @@ and exhibited clearly, with a label attached.\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "\
+        assert_eq!(rdr.bstr(), "\
 For the Doctor Watsons of this world, as opposed to the Sherlock
 Holmeses, s\
 ");
@@ -901,7 +872,7 @@ Holmeses, s\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nli\nsa\nmaggie\n");
+        assert_eq!(rdr.bstr(), "homer\nli\nsa\nmaggie\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -920,7 +891,7 @@ Holmeses, s\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "\nhomer\nlisa\nmaggie\n");
+        assert_eq!(rdr.bstr(), "\nhomer\nlisa\nmaggie\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -939,7 +910,7 @@ Holmeses, s\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\nmaggie\n\n");
+        assert_eq!(rdr.bstr(), "homer\nlisa\nmaggie\n\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());
@@ -958,7 +929,7 @@ Holmeses, s\
         assert!(rdr.buffer().is_empty());
 
         assert!(rdr.fill().unwrap());
-        assert_eq!(btos(rdr.buffer()), "homer\nlisa\nmaggie\n\n");
+        assert_eq!(rdr.bstr(), "homer\nlisa\nmaggie\n\n");
         rdr.consume_all();
 
         assert!(!rdr.fill().unwrap());

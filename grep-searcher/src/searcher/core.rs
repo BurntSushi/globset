@@ -1,6 +1,6 @@
 use std::cmp;
 
-use memchr::memchr;
+use bstr::B;
 
 use grep_matcher::{LineMatchKind, Matcher};
 use lines::{self, LineStep};
@@ -149,7 +149,7 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
             BinaryDetection::Quit(b) => b,
             _ => return false,
         };
-        if let Some(i) = memchr(binary_byte, &buf[*range]) {
+        if let Some(i) = B(&buf[*range]).find_byte(binary_byte) {
             self.binary_byte_offset = Some(range.start() + i);
             true
         } else {

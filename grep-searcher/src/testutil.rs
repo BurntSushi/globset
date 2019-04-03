@@ -1,10 +1,10 @@
 use std::io::{self, Write};
 use std::str;
 
+use bstr::B;
 use grep_matcher::{
     LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError,
 };
-use memchr::memchr;
 use regex::bytes::{Regex, RegexBuilder};
 
 use searcher::{BinaryDetection, Searcher, SearcherBuilder};
@@ -94,7 +94,8 @@ impl Matcher for RegexMatcher {
             }
             // Make it interesting and return the last byte in the current
             // line.
-            let i = memchr(self.line_term.unwrap().as_byte(), haystack)
+            let i = B(haystack)
+                .find_byte(self.line_term.unwrap().as_byte())
                 .map(|i| i)
                 .unwrap_or(haystack.len() - 1);
             Ok(Some(LineMatchKind::Candidate(i)))
