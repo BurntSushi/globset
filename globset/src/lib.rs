@@ -119,7 +119,7 @@ use std::hash;
 use std::path::Path;
 use std::str;
 
-use aho_corasick::{Automaton, AcAutomaton, FullAcAutomaton};
+use aho_corasick::AhoCorasick;
 use regex::bytes::{Regex, RegexBuilder, RegexSet};
 
 use pathutil::{
@@ -648,7 +648,7 @@ impl ExtensionStrategy {
 
 #[derive(Clone, Debug)]
 struct PrefixStrategy {
-    matcher: FullAcAutomaton<Vec<u8>>,
+    matcher: AhoCorasick,
     map: Vec<usize>,
     longest: usize,
 }
@@ -656,8 +656,8 @@ struct PrefixStrategy {
 impl PrefixStrategy {
     fn is_match(&self, candidate: &Candidate) -> bool {
         let path = candidate.path_prefix(self.longest);
-        for m in self.matcher.find_overlapping(path) {
-            if m.start == 0 {
+        for m in self.matcher.find_overlapping_iter(path) {
+            if m.start() == 0 {
                 return true;
             }
         }
@@ -666,9 +666,9 @@ impl PrefixStrategy {
 
     fn matches_into(&self, candidate: &Candidate, matches: &mut Vec<usize>) {
         let path = candidate.path_prefix(self.longest);
-        for m in self.matcher.find_overlapping(path) {
-            if m.start == 0 {
-                matches.push(self.map[m.pati]);
+        for m in self.matcher.find_overlapping_iter(path) {
+            if m.start() == 0 {
+                matches.push(self.map[m.pattern()]);
             }
         }
     }
@@ -676,7 +676,7 @@ impl PrefixStrategy {
 
 #[derive(Clone, Debug)]
 struct SuffixStrategy {
-    matcher: FullAcAutomaton<Vec<u8>>,
+    matcher: AhoCorasick,
     map: Vec<usize>,
     longest: usize,
 }
@@ -684,8 +684,8 @@ struct SuffixStrategy {
 impl SuffixStrategy {
     fn is_match(&self, candidate: &Candidate) -> bool {
         let path = candidate.path_suffix(self.longest);
-        for m in self.matcher.find_overlapping(path) {
-            if m.end == path.len() {
+        for m in self.matcher.find_overlapping_iter(path) {
+            if m.end() == path.len() {
                 return true;
             }
         }
@@ -694,9 +694,9 @@ impl SuffixStrategy {
 
     fn matches_into(&self, candidate: &Candidate, matches: &mut Vec<usize>) {
         let path = candidate.path_suffix(self.longest);
-        for m in self.matcher.find_overlapping(path) {
-            if m.end == path.len() {
-                matches.push(self.map[m.pati]);
+        for m in self.matcher.find_overlapping_iter(path) {
+            if m.end() == path.len() {
+                matches.push(self.map[m.pattern()]);
             }
         }
     }
@@ -781,18 +781,16 @@ impl MultiStrategyBuilder {
     }
 
     fn prefix(self) -> PrefixStrategy {
-        let it = self.literals.into_iter().map(|s| s.into_bytes());
         PrefixStrategy {
-            matcher: AcAutomaton::new(it).into_full(),
+            matcher: AhoCorasick::new_auto_configured(&self.literals),
             map: self.map,
             longest: self.longest,
         }
     }
 
     fn suffix(self) -> SuffixStrategy {
-        let it = self.literals.into_iter().map(|s| s.into_bytes());
         SuffixStrategy {
-            matcher: AcAutomaton::new(it).into_full(),
+            matcher: AhoCorasick::new_auto_configured(&self.literals),
             map: self.map,
             longest: self.longest,
         }

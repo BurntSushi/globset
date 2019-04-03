@@ -19,7 +19,7 @@ name = "globset"
 bench = false
 
 [dependencies]
-aho-corasick = "0.6.8"
+aho-corasick = "0.7.3"
 fnv = "1.0.6"
 log = "0.4.5"
 memchr = "2.1.0"
