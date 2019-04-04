@@ -104,27 +104,25 @@ or to enable case insensitive matching.
 #![deny(missing_docs)]
 
 extern crate aho_corasick;
+extern crate bstr;
 extern crate fnv;
 #[macro_use]
 extern crate log;
-extern crate memchr;
 extern crate regex;
 
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap};
 use std::error::Error as StdError;
-use std::ffi::OsStr;
 use std::fmt;
 use std::hash;
 use std::path::Path;
 use std::str;
 
 use aho_corasick::AhoCorasick;
+use bstr::{B, BStr, BString};
 use regex::bytes::{Regex, RegexBuilder, RegexSet};
 
-use pathutil::{
-    file_name, file_name_ext, normalize_path, os_str_bytes, path_bytes,
-};
+use pathutil::{file_name, file_name_ext, normalize_path};
 use glob::MatchStrategy;
 pub use glob::{Glob, GlobBuilder, GlobMatcher};
 
@@ -489,24 +487,25 @@ impl GlobSetBuilder {
 /// path against multiple globs or sets of globs.
 #[derive(Clone, Debug)]
 pub struct Candidate<'a> {
-    path: Cow<'a, [u8]>,
-    basename: Cow<'a, [u8]>,
-    ext: Cow<'a, [u8]>,
+    path: Cow<'a, BStr>,
+    basename: Cow<'a, BStr>,
+    ext: Cow<'a, BStr>,
 }
 
 impl<'a> Candidate<'a> {
     /// Create a new candidate for matching from the given path.
     pub fn new<P: AsRef<Path> + ?Sized>(path: &'a P) -> Candidate<'a> {
-        let path = path.as_ref();
-        let basename = file_name(path).unwrap_or(OsStr::new(""));
+        let path = normalize_path(BString::from_path_lossy(path.as_ref()));
+        let basename = file_name(&path).unwrap_or(Cow::Borrowed(B("")));
+        let ext = file_name_ext(&basename).unwrap_or(Cow::Borrowed(B("")));
         Candidate {
-            path: normalize_path(path_bytes(path)),
-            basename: os_str_bytes(basename),
-            ext: file_name_ext(basename).unwrap_or(Cow::Borrowed(b"")),
+            path: path,
+            basename: basename,
+            ext: ext,
         }
     }
 
-    fn path_prefix(&self, max: usize) -> &[u8] {
+    fn path_prefix(&self, max: usize) -> &BStr {
         if self.path.len() <= max {
             &*self.path
         } else {
@@ -514,7 +513,7 @@ impl<'a> Candidate<'a> {
         }
     }
 
-    fn path_suffix(&self, max: usize) -> &[u8] {
+    fn path_suffix(&self, max: usize) -> &BStr {
         if self.path.len() <= max {
             &*self.path
         } else {
@@ -575,12 +574,12 @@ impl LiteralStrategy {
     }
 
     fn is_match(&self, candidate: &Candidate) -> bool {
-        self.0.contains_key(&*candidate.path)
+        self.0.contains_key(candidate.path.as_bytes())
     }
 
     #[inline(never)]
     fn matches_into(&self, candidate: &Candidate, matches: &mut Vec<usize>) {
-        if let Some(hits) = self.0.get(&*candidate.path) {
+        if let Some(hits) = self.0.get(candidate.path.as_bytes()) {
             matches.extend(hits);
         }
     }
@@ -602,7 +601,7 @@ impl BasenameLiteralStrategy {
         if candidate.basename.is_empty() {
             return false;
         }
-        self.0.contains_key(&*candidate.basename)
+        self.0.contains_key(candidate.basename.as_bytes())
     }
 
     #[inline(never)]
@@ -610,7 +609,7 @@ impl BasenameLiteralStrategy {
         if candidate.basename.is_empty() {
             return;
         }
-        if let Some(hits) = self.0.get(&*candidate.basename) {
+        if let Some(hits) = self.0.get(candidate.basename.as_bytes()) {
             matches.extend(hits);
         }
     }
@@ -632,7 +631,7 @@ impl ExtensionStrategy {
         if candidate.ext.is_empty() {
             return false;
         }
-        self.0.contains_key(&*candidate.ext)
+        self.0.contains_key(candidate.ext.as_bytes())
     }
 
     #[inline(never)]
@@ -640,7 +639,7 @@ impl ExtensionStrategy {
         if candidate.ext.is_empty() {
             return;
         }
-        if let Some(hits) = self.0.get(&*candidate.ext) {
+        if let Some(hits) = self.0.get(candidate.ext.as_bytes()) {
             matches.extend(hits);
         }
     }
@@ -710,11 +709,11 @@ impl RequiredExtensionStrategy {
         if candidate.ext.is_empty() {
             return false;
         }
-        match self.0.get(&*candidate.ext) {
+        match self.0.get(candidate.ext.as_bytes()) {
             None => false,
             Some(regexes) => {
                 for &(_, ref re) in regexes {
-                    if re.is_match(&*candidate.path) {
+                    if re.is_match(candidate.path.as_bytes()) {
                         return true;
                     }
                 }
@@ -728,9 +727,9 @@ impl RequiredExtensionStrategy {
         if candidate.ext.is_empty() {
             return;
         }
-        if let Some(regexes) = self.0.get(&*candidate.ext) {
+        if let Some(regexes) = self.0.get(candidate.ext.as_bytes()) {
             for &(global_index, ref re) in regexes {
-                if re.is_match(&*candidate.path) {
+                if re.is_match(candidate.path.as_bytes()) {
                     matches.push(global_index);
                 }
             }
@@ -746,11 +745,11 @@ struct RegexSetStrategy {
 
 impl RegexSetStrategy {
     fn is_match(&self, candidate: &Candidate) -> bool {
-        self.matcher.is_match(&*candidate.path)
+        self.matcher.is_match(candidate.path.as_bytes())
     }
 
     fn matches_into(&self, candidate: &Candidate, matches: &mut Vec<usize>) {
-        for i in self.matcher.matches(&*candidate.path) {
+        for i in self.matcher.matches(candidate.path.as_bytes()) {
             matches.push(self.map[i]);
         }
     }
