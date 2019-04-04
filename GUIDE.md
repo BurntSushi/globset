@@ -525,9 +525,9 @@ config file. Once the environment variable is set, open the file and just type
 in the flags you want set automatically. There are only two rules for
 describing the format of the config file:
 
-1. Every line is a shell argument, after trimming ASCII whitespace.
-2. Lines starting with `#` (optionally preceded by any amount of
-   ASCII whitespace) are ignored.
+1. Every line is a shell argument, after trimming whitespace.
+2. Lines starting with `#` (optionally preceded by any amount of whitespace)
+are ignored.
 
 In particular, there is no escaping. Each line is given to ripgrep as a single
 command line argument verbatim.

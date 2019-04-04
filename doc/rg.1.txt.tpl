@@ -107,9 +107,9 @@ ripgrep supports reading configuration files that change ripgrep's default
 behavior. The format of the configuration file is an "rc" style and is very
 simple. It is defined by two rules:
 
-    1. Every line is a shell argument, after trimming ASCII whitespace.
+    1. Every line is a shell argument, after trimming whitespace.
     2. Lines starting with *#* (optionally preceded by any amount of
-       ASCII whitespace) are ignored.
+       whitespace) are ignored.
 
 ripgrep will look for a single configuration file if and only if the
 *RIPGREP_CONFIG_PATH* environment variable is set and is non-empty.

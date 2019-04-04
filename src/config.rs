@@ -5,10 +5,11 @@
 use std::env;
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use bstr::io::BufReadExt;
 use log;
 
 use crate::Result;
@@ -76,60 +77,27 @@ fn parse<P: AsRef<Path>>(
 fn parse_reader<R: io::Read>(
     rdr: R,
 ) -> Result<(Vec<OsString>, Vec<Box<Error>>)> {
-    let mut bufrdr = io::BufReader::new(rdr);
+    let bufrdr = io::BufReader::new(rdr);
     let (mut args, mut errs) = (vec![], vec![]);
-    let mut line = vec![];
     let mut line_number = 0;
-    while {
-        line.clear();
+    bufrdr.for_byte_line_with_terminator(|line| {
         line_number += 1;
-        bufrdr.read_until(b'\n', &mut line)? > 0
-    } {
-        trim(&mut line);
+
+        let line = line.trim();
         if line.is_empty() || line[0] == b'#' {
-            continue;
+            return Ok(true);
         }
-        match bytes_to_os_string(&line) {
+        match line.to_os_str() {
             Ok(osstr) => {
-                args.push(osstr);
+                args.push(osstr.to_os_string());
             }
             Err(err) => {
                 errs.push(format!("{}: {}", line_number, err).into());
             }
         }
-    }
+        Ok(true)
+    })?;
     Ok((args, errs))
-}
-
-/// Trim the given bytes of whitespace according to the ASCII definition.
-fn trim(x: &mut Vec<u8>) {
-    let upto = x.iter().take_while(|b| is_space(**b)).count();
-    x.drain(..upto);
-    let revto = x.len() - x.iter().rev().take_while(|b| is_space(**b)).count();
-    x.drain(revto..);
-}
-
-/// Returns true if and only if the given byte is an ASCII space character.
-fn is_space(b: u8) -> bool {
-    b == b'\t'
-    || b == b'\n'
-    || b == b'\x0B'
-    || b == b'\x0C'
-    || b == b'\r'
-    || b == b' '
-}
-
-/// On Unix, get an OsString from raw bytes.
-#[cfg(unix)]
-fn bytes_to_os_string(bytes: &[u8]) -> Result<OsString> {
-    use std::os::unix::ffi::OsStringExt;
-    Ok(OsString::from_vec(bytes.to_vec()))
-}
-
-/// On non-Unix (like Windows), require UTF-8.
-#[cfg(not(unix))]
-fn bytes_to_os_string(bytes: &[u8]) -> Result<OsString> {
-    String::from_utf8(bytes.to_vec()).map(OsString::from).map_err(From::from)
 }
 
 #[cfg(test)]
