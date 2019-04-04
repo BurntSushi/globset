@@ -1,6 +1,8 @@
 use std::ffi::OsStr;
 use std::str;
 
+use bstr::{BStr, BString};
+
 /// A single state in the state machine used by `unescape`.
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum State {
@@ -35,18 +37,16 @@ enum State {
 ///
 /// assert_eq!(r"foo\nbar\xFFbaz", escape(b"foo\nbar\xFFbaz"));
 /// ```
-pub fn escape(mut bytes: &[u8]) -> String {
+pub fn escape(bytes: &[u8]) -> String {
+    let bytes = BStr::new(bytes);
     let mut escaped = String::new();
-    while let Some(result) = decode_utf8(bytes) {
-        match result {
-            Ok(cp) => {
-                escape_char(cp, &mut escaped);
-                bytes = &bytes[cp.len_utf8()..];
+    for (s, e, ch) in bytes.char_indices() {
+        if ch == '\u{FFFD}' {
+            for b in bytes[s..e].bytes() {
+                escape_byte(b, &mut escaped);
             }
-            Err(byte) => {
-                escape_byte(byte, &mut escaped);
-                bytes = &bytes[1..];
-            }
+        } else {
+            escape_char(ch, &mut escaped);
         }
     }
     escaped
@@ -56,19 +56,7 @@ pub fn escape(mut bytes: &[u8]) -> String {
 ///
 /// This is like [`escape`](fn.escape.html), but accepts an OS string.
 pub fn escape_os(string: &OsStr) -> String {
-    #[cfg(unix)]
-    fn imp(string: &OsStr) -> String {
-        use std::os::unix::ffi::OsStrExt;
-
-        escape(string.as_bytes())
-    }
-
-    #[cfg(not(unix))]
-    fn imp(string: &OsStr) -> String {
-        escape(string.to_string_lossy().as_bytes())
-    }
-
-    imp(string)
+    escape(BString::from_os_str_lossy(string).as_bytes())
 }
 
 /// Unescapes a string.
@@ -192,46 +180,6 @@ fn escape_byte(byte: u8, into: &mut String) {
         b'\t' => into.push_str(r"\t"),
         b'\\' => into.push_str(r"\\"),
         _ => into.push_str(&format!(r"\x{:02X}", byte)),
-    }
-}
-
-/// Decodes the next UTF-8 encoded codepoint from the given byte slice.
-///
-/// If no valid encoding of a codepoint exists at the beginning of the given
-/// byte slice, then the first byte is returned instead.
-///
-/// This returns `None` if and only if `bytes` is empty.
-fn decode_utf8(bytes: &[u8]) -> Option<Result<char, u8>> {
-    if bytes.is_empty() {
-        return None;
-    }
-    let len = match utf8_len(bytes[0]) {
-        None => return Some(Err(bytes[0])),
-        Some(len) if len > bytes.len() => return Some(Err(bytes[0])),
-        Some(len) =>  len,
-    };
-    match str::from_utf8(&bytes[..len]) {
-        Ok(s) => Some(Ok(s.chars().next().unwrap())),
-        Err(_) => Some(Err(bytes[0])),
-    }
-}
-
-/// Given a UTF-8 leading byte, this returns the total number of code units
-/// in the following encoded codepoint.
-///
-/// If the given byte is not a valid UTF-8 leading byte, then this returns
-/// `None`.
-fn utf8_len(byte: u8) -> Option<usize> {
-    if byte <= 0x7F {
-        Some(1)
-    } else if byte <= 0b110_11111 {
-        Some(2)
-    } else if byte <= 0b1110_1111 {
-        Some(3)
-    } else if byte <= 0b1111_0111 {
-        Some(4)
-    } else {
-        None
     }
 }
 

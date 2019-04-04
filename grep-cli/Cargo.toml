@@ -14,6 +14,7 @@ license = "Unlicense/MIT"
 
 [dependencies]
 atty = "0.2.11"
+bstr = "0.1.2"
 globset = { version = "0.4.2", path = "../globset" }
 lazy_static = "1.1.0"
 log = "0.4.5"

@@ -159,6 +159,7 @@ error message is crafted that typically tells the user how to fix the problem.
 #![deny(missing_docs)]
 
 extern crate atty;
+extern crate bstr;
 extern crate globset;
 #[macro_use]
 extern crate lazy_static;
