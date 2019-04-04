@@ -70,6 +70,7 @@ fn example() -> Result<(), Box<Error>> {
 
 #[cfg(feature = "serde1")]
 extern crate base64;
+extern crate bstr;
 extern crate grep_matcher;
 #[cfg(test)]
 extern crate grep_regex;

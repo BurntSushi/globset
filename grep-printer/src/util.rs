@@ -4,6 +4,7 @@ use std::io;
 use std::path::Path;
 use std::time;
 
+use bstr::{BStr, BString};
 use grep_matcher::{Captures, LineTerminator, Match, Matcher};
 use grep_searcher::{
     LineIter,
@@ -262,26 +263,12 @@ impl<'a> Sunk<'a> {
 /// portability with a small cost: on Windows, paths that are not valid UTF-16
 /// will not roundtrip correctly.
 #[derive(Clone, Debug)]
-pub struct PrinterPath<'a>(Cow<'a, [u8]>);
+pub struct PrinterPath<'a>(Cow<'a, BStr>);
 
 impl<'a> PrinterPath<'a> {
     /// Create a new path suitable for printing.
     pub fn new(path: &'a Path) -> PrinterPath<'a> {
-        PrinterPath::new_impl(path)
-    }
-
-    #[cfg(unix)]
-    fn new_impl(path: &'a Path) -> PrinterPath<'a> {
-        use std::os::unix::ffi::OsStrExt;
-        PrinterPath(Cow::Borrowed(path.as_os_str().as_bytes()))
-    }
-
-    #[cfg(not(unix))]
-    fn new_impl(path: &'a Path) -> PrinterPath<'a> {
-        PrinterPath(match path.to_string_lossy() {
-            Cow::Owned(path) => Cow::Owned(path.into_bytes()),
-            Cow::Borrowed(path) => Cow::Borrowed(path.as_bytes()),
-        })
+        PrinterPath(BString::from_path_lossy(path))
     }
 
     /// Create a new printer path from the given path which can be efficiently
@@ -302,7 +289,7 @@ impl<'a> PrinterPath<'a> {
     /// path separators that are both replaced by `new_sep`. In all other
     /// environments, only `/` is treated as a path separator.
     fn replace_separator(&mut self, new_sep: u8) {
-        let transformed_path: Vec<_> = self.as_bytes().iter().map(|&b| {
+        let transformed_path: BString = self.0.bytes().map(|b| {
             if b == b'/' || (cfg!(windows) && b == b'\\') {
                 new_sep
             } else {
@@ -314,7 +301,7 @@ impl<'a> PrinterPath<'a> {
 
     /// Return the raw bytes for this path.
     pub fn as_bytes(&self) -> &[u8] {
-        &*self.0
+        self.0.as_bytes()
     }
 }
 
