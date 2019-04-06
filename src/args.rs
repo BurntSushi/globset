@@ -1654,12 +1654,12 @@ where I: IntoIterator<Item=T>,
     if err.use_stderr() {
         return Err(err.into());
     }
-    // Explicitly ignore any error returned by writeln!. The most likely error
+    // Explicitly ignore any error returned by write!. The most likely error
     // at this point is a broken pipe error, in which case, we want to ignore
     // it and exit quietly.
     //
     // (This is the point of this helper function. clap's functionality for
     // doing this will panic on a broken pipe error.)
-    let _ = writeln!(io::stdout(), "{}", err);
+    let _ = write!(io::stdout(), "{}", err);
     process::exit(0);
 }
