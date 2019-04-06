@@ -292,6 +292,7 @@ pub struct GlobSet {
 
 impl GlobSet {
     /// Create an empty `GlobSet`. An empty set matches nothing.
+    #[inline]
     pub fn empty() -> GlobSet {
         GlobSet {
             len: 0,
@@ -300,11 +301,13 @@ impl GlobSet {
     }
 
     /// Returns true if this set is empty, and therefore matches nothing.
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
     /// Returns the number of globs in this set.
+    #[inline]
     pub fn len(&self) -> usize {
         self.len
     }

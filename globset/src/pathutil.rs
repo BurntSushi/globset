@@ -9,11 +9,7 @@ use bstr::BStr;
 pub fn file_name<'a>(path: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
     if path.is_empty() {
         return None;
-    } else if path.len() == 1 && path[0] == b'.' {
-        return None;
     } else if path.last() == Some(b'.') {
-        return None;
-    } else if path.len() >= 2 && &path[path.len() - 2..] == ".." {
         return None;
     }
     let last_slash = path.rfind_byte(b'/').map(|i| i + 1).unwrap_or(0);
@@ -47,15 +43,9 @@ pub fn file_name_ext<'a>(name: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
     if name.is_empty() {
         return None;
     }
-    let last_dot_at = {
-        let result = name
-            .bytes().enumerate().rev()
-            .find(|&(_, b)| b == b'.')
-            .map(|(i, _)| i);
-        match result {
-            None => return None,
-            Some(i) => i,
-        }
+    let last_dot_at = match name.rfind_byte(b'.') {
+        None => return None,
+        Some(i) => i,
     };
     Some(match *name {
         Cow::Borrowed(name) => Cow::Borrowed(&name[last_dot_at..]),
