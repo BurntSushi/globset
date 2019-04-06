@@ -50,9 +50,12 @@ impl RegexMatcherBuilder {
         if let Some(ref re) = fast_line_regex {
             trace!("extracted fast line regex: {:?}", re);
         }
+
+        let matcher = RegexMatcherImpl::new(&chir)?;
+        trace!("final regex: {:?}", matcher.regex());
         Ok(RegexMatcher {
             config: self.config.clone(),
-            matcher: RegexMatcherImpl::new(&chir)?,
+            matcher: matcher,
             fast_line_regex: fast_line_regex,
             non_matching_bytes: non_matching_bytes,
         })
@@ -368,6 +371,15 @@ impl RegexMatcherImpl {
             Ok(RegexMatcherImpl::CRLF(CRLFMatcher::new(expr)?))
         } else {
             Ok(RegexMatcherImpl::Standard(StandardMatcher::new(expr)?))
+        }
+    }
+
+    /// Return the underlying regex object used.
+    fn regex(&self) -> &Regex {
+        match *self {
+            RegexMatcherImpl::Word(ref x) => x.regex(),
+            RegexMatcherImpl::CRLF(ref x) => x.regex(),
+            RegexMatcherImpl::Standard(ref x) => &x.regex,
         }
     }
 }

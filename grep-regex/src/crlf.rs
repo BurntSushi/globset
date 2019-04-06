@@ -34,6 +34,11 @@ impl CRLFMatcher {
         }
         Ok(CRLFMatcher { regex, names })
     }
+
+    /// Return the underlying regex used by this matcher.
+    pub fn regex(&self) -> &Regex {
+        &self.regex
+    }
 }
 
 impl Matcher for CRLFMatcher {
