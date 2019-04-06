@@ -47,18 +47,23 @@ impl LiteralSets {
     /// generated these literal sets. The idea here is that the pattern
     /// returned by this method is much cheaper to search for. i.e., It is
     /// usually a single literal or an alternation of literals.
-    pub fn one_regex(&self) -> Option<String> {
+    pub fn one_regex(&self, word: bool) -> Option<String> {
         // TODO: The logic in this function is basically inscrutable. It grew
         // organically in the old grep 0.1 crate. Ideally, it would be
         // re-worked. In fact, the entire inner literal extraction should be
         // re-worked. Actually, most of regex-syntax's literal extraction
         // should also be re-worked. Alas... only so much time in the day.
 
-        if self.prefixes.all_complete() && !self.prefixes.is_empty() {
-            debug!("literal prefixes detected: {:?}", self.prefixes);
-            // When this is true, the regex engine will do a literal scan,
-            // so we don't need to return anything.
-            return None;
+        if !word {
+            if self.prefixes.all_complete() && !self.prefixes.is_empty() {
+                debug!("literal prefixes detected: {:?}", self.prefixes);
+                // When this is true, the regex engine will do a literal scan,
+                // so we don't need to return anything. But we only do this
+                // if we aren't doing a word regex, since a word regex adds
+                // a `(?:\W|^)` to the beginning of the regex, thereby
+                // defeating the regex engine's literal detection.
+                return None;
+            }
         }
 
         // Out of inner required literals, prefixes and suffixes, which one
@@ -285,7 +290,7 @@ mod tests {
     }
 
     fn one_regex(pattern: &str) -> Option<String> {
-        sets(pattern).one_regex()
+        sets(pattern).one_regex(false)
     }
 
     // Put a pattern into the same format as the one returned by `one_regex`.

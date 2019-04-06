@@ -207,7 +207,7 @@ impl ConfiguredHIR {
         if self.config.line_terminator.is_none() {
             return Ok(None);
         }
-        match LiteralSets::new(&self.expr).one_regex() {
+        match LiteralSets::new(&self.expr).one_regex(self.config.word) {
             None => Ok(None),
             Some(pattern) => self.pattern_to_regex(&pattern).map(Some),
         }
