@@ -111,7 +111,7 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("brotli", &["*.br"]),
     ("buildstream", &["*.bst"]),
     ("bzip2", &["*.bz2", "*.tbz2"]),
-    ("c", &["*.c", "*.h", "*.H", "*.cats"]),
+    ("c", &["*.[chH]", "*.[chH].in", "*.cats"]),
     ("cabal", &["*.cabal"]),
     ("cbor", &["*.cbor"]),
     ("ceylon", &["*.ceylon"]),
@@ -121,8 +121,8 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("creole", &["*.creole"]),
     ("config", &["*.cfg", "*.conf", "*.config", "*.ini"]),
     ("cpp", &[
-        "*.C", "*.cc", "*.cpp", "*.cxx",
-        "*.h", "*.H", "*.hh", "*.hpp", "*.hxx", "*.inl",
+        "*.[ChH]", "*.cc", "*.[ch]pp", "*.[ch]xx", "*.hh",  "*.inl",
+        "*.[ChH].in", "*.cc.in", "*.[ch]pp.in", "*.[ch]xx.in", "*.hh.in",
     ]),
     ("crystal", &["Projectfile", "*.cr"]),
     ("cs", &["*.cs"]),
@@ -202,8 +202,9 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("lz4", &["*.lz4"]),
     ("m4", &["*.ac", "*.m4"]),
     ("make", &[
-        "gnumakefile", "Gnumakefile", "GNUmakefile",
-        "makefile", "Makefile",
+        "[Gg][Nn][Uu]makefile", "[Mm]akefile",
+        "[Gg][Nn][Uu]makefile.am", "[Mm]akefile.am",
+        "[Gg][Nn][Uu]makefile.in", "[Mm]akefile.in",
         "*.mk", "*.mak"
     ]),
     ("mako", &["*.mako", "*.mao"]),
