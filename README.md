@@ -208,14 +208,6 @@ from homebrew-core, (compiled with rust stable, no SIMD):
 $ brew install ripgrep
 ```
 
-or you can install a binary compiled with rust nightly (including SIMD and all
-optimizations) by utilizing a custom tap:
-
-```
-$ brew tap burntsushi/ripgrep https://github.com/BurntSushi/ripgrep.git
-$ brew install ripgrep-bin
-```
-
 If you're a **MacPorts** user, then you can install ripgrep from the
 [official ports](https://www.macports.org/ports.php?by=name&substr=ripgrep):
 
