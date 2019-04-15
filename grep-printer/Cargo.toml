@@ -28,4 +28,4 @@ serde_derive = { version = "1.0.77", optional = true }
 serde_json = { version = "1.0.27", optional = true }
 
 [dev-dependencies]
-grep-regex = { version = "0.1.1", path = "../grep-regex" }
+grep-regex = { version = "0.1.3", path = "../grep-regex" }
