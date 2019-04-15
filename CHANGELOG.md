@@ -46,7 +46,7 @@ Feature enhancements:
 
 * Added or improved file type filtering for Apache Thrift, ASP, Bazel, Brotli,
   BuildStream, bzip2, C, C++, Cython, gzip, Java, Make, Postscript, QML, Tex,
-  XML, xz, zig, zstd.
+  XML, xz, zig and zstd.
 * [FEATURE #855](https://github.com/BurntSushi/ripgrep/issues/855):
   Add `--binary` flag for disabling binary file filtering.
 * [FEATURE #1078](https://github.com/BurntSushi/ripgrep/pull/1078):
@@ -60,15 +60,12 @@ Feature enhancements:
 * [FEATURE #1159](https://github.com/BurntSushi/ripgrep/pull/1159):
   ripgrep's exit status logic should now match GNU grep. See updated man page.
 * [FEATURE #1164](https://github.com/BurntSushi/ripgrep/pull/1164):
-  Add `--ignore-file-case-insensitive` that makes ignore files case
-  insensitive.
-* [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
-  Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
+  Add `--ignore-file-case-insensitive` for case insensitive ignore globs.
 * [FEATURE #1185](https://github.com/BurntSushi/ripgrep/pull/1185):
   Add `-I` flag as a short option for the `--no-filename` flag.
 * [FEATURE #1207](https://github.com/BurntSushi/ripgrep/pull/1207):
   Add `none` value to `-E/--encoding` to forcefully disable all transcoding.
-* FEATURE:
+* [FEATURE da9d7204](https://github.com/BurntSushi/ripgrep/commit/da9d7204):
   Add `--pcre2-version` for querying showing PCRE2 version information.
 
 Bug fixes:
@@ -111,7 +108,7 @@ Bug fixes:
 * [BUG #1125](https://github.com/BurntSushi/ripgrep/issues/1125),
   [BUG #1159](https://github.com/BurntSushi/ripgrep/issues/1159):
   ripgrep shouldn't panic for `rg -h | rg` and should emit correct exit status.
-* [BUG #1144](https://github.com/BurntSushi/ripgrep/issues/1144),
+* [BUG #1144](https://github.com/BurntSushi/ripgrep/issues/1144):
   Fixes a bug where line numbers could be wrong on big-endian machines.
 * [BUG #1154](https://github.com/BurntSushi/ripgrep/issues/1154):
   Windows files with "hidden" attribute are now treated as hidden.
@@ -125,7 +122,8 @@ Bug fixes:
   Document cases where ripgrep may use a lot of memory.
 * [BUG #1203](https://github.com/BurntSushi/ripgrep/issues/1203):
   Fix a matching bug related to the suffix literal optimization.
-* BUG: Increase the default stack size for PCRE2's JIT.
+* [BUG 8f14cb18](https://github.com/BurntSushi/ripgrep/commit/8f14cb18):
+  Increase the default stack size for PCRE2's JIT.
 
 
 0.10.0 (2018-09-07)
