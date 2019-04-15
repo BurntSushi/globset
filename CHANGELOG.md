@@ -13,6 +13,9 @@ introduce breaking changes, which will always be documented in this CHANGELOG.
 See [issue 1172](https://github.com/BurntSushi/ripgrep/issues/1172) for a bit
 more detail on why this versioning change was made.
 
+This release increases the **minimum supported Rust version** from 1.28.0 to
+1.34.0.
+
 **BREAKING CHANGES**:
 
 * ripgrep has tweaked its exit status codes to be more like GNU grep's. Namely,
@@ -41,6 +44,9 @@ Performance improvements:
 
 Feature enhancements:
 
+* Added or improved file type filtering for Apache Thrift, ASP, Bazel, Brotli,
+  BuildStream, bzip2, C, C++, Cython, gzip, Java, Make, Postscript, QML, Tex,
+  XML, xz, zig, zstd.
 * [FEATURE #855](https://github.com/BurntSushi/ripgrep/issues/855):
   Add `--binary` flag for disabling binary file filtering.
 * [FEATURE #1078](https://github.com/BurntSushi/ripgrep/pull/1078):
@@ -53,8 +59,15 @@ Feature enhancements:
   Add `--auto-hybrid-regex` flag for automatically falling back to PCRE2.
 * [FEATURE #1159](https://github.com/BurntSushi/ripgrep/pull/1159):
   ripgrep's exit status logic should now match GNU grep. See updated man page.
+* [FEATURE #1164](https://github.com/BurntSushi/ripgrep/pull/1164):
+  Add `--ignore-file-case-insensitive` that makes ignore files case
+  insensitive.
 * [FEATURE #1170](https://github.com/BurntSushi/ripgrep/pull/1170):
   Add `--ignore-file-case-insensitive` for case insensitive .ignore globs.
+* [FEATURE #1185](https://github.com/BurntSushi/ripgrep/pull/1185):
+  Add `-I` flag as a short option for the `--no-filename` flag.
+* [FEATURE #1207](https://github.com/BurntSushi/ripgrep/pull/1207):
+  Add `none` value to `-E/--encoding` to forcefully disable all transcoding.
 * FEATURE:
   Add `--pcre2-version` for querying showing PCRE2 version information.
 
@@ -68,21 +81,38 @@ Bug fixes:
   `**` is now accepted as valid syntax anywhere in a glob.
 * [BUG #916](https://github.com/BurntSushi/ripgrep/issues/916):
   ripgrep no longer hangs when searching `/proc` with a zombie process present.
+* [BUG #1052](https://github.com/BurntSushi/ripgrep/issues/1052):
+  Fix bug where ripgrep could panic when transcoding UTF-16 files.
+* [BUG #1055](https://github.com/BurntSushi/ripgrep/issues/1055):
+  Suggest `-U/--multiline` when a pattern contains a `\n`.
+* [BUG #1063](https://github.com/BurntSushi/ripgrep/issues/1063):
+  Always strip a BOM if it's present, even for UTF-8.
+* [BUG #1064](https://github.com/BurntSushi/ripgrep/issues/1064):
+  Fix inner literal detection that could lead to incorrect matches.
+* [BUG #1079](https://github.com/BurntSushi/ripgrep/issues/1079):
+  Fixes a bug where the order of globs could result in missing a match.
+* [BUG #1089](https://github.com/BurntSushi/ripgrep/issues/1089):
+  Fix another bug where ripgrep could panic when transcoding UTF-16 files.
 * [BUG #1091](https://github.com/BurntSushi/ripgrep/issues/1091):
   Add note about inverted flags to the man page.
 * [BUG #1093](https://github.com/BurntSushi/ripgrep/pull/1093):
   Fix handling of literal slashes in gitignore patterns.
 * [BUG #1095](https://github.com/BurntSushi/ripgrep/issues/1095):
   Fix corner cases involving the `--crlf` flag.
+* [BUG #1101](https://github.com/BurntSushi/ripgrep/issues/1101):
+  Fix AsciiDoc escaping for man page output.
 * [BUG #1103](https://github.com/BurntSushi/ripgrep/issues/1103):
   Clarify what `--encoding auto` does.
 * [BUG #1106](https://github.com/BurntSushi/ripgrep/issues/1106):
   `--files-with-matches` and `--files-without-match` work with one file.
 * [BUG #1121](https://github.com/BurntSushi/ripgrep/issues/1121):
-  Fix bug that was triggering Windows antimalware when using the --files flag.
+  Fix bug that was triggering Windows antimalware when using the `--files`
+  flag.
 * [BUG #1125](https://github.com/BurntSushi/ripgrep/issues/1125),
   [BUG #1159](https://github.com/BurntSushi/ripgrep/issues/1159):
   ripgrep shouldn't panic for `rg -h | rg` and should emit correct exit status.
+* [BUG #1144](https://github.com/BurntSushi/ripgrep/issues/1144),
+  Fixes a bug where line numbers could be wrong on big-endian machines.
 * [BUG #1154](https://github.com/BurntSushi/ripgrep/issues/1154):
   Windows files with "hidden" attribute are now treated as hidden.
 * [BUG #1173](https://github.com/BurntSushi/ripgrep/issues/1173):
@@ -93,6 +123,8 @@ Bug fixes:
   Fix bug where `-F`/`-x` weren't applied to patterns given via `-f`.
 * [BUG #1189](https://github.com/BurntSushi/ripgrep/issues/1189):
   Document cases where ripgrep may use a lot of memory.
+* [BUG #1203](https://github.com/BurntSushi/ripgrep/issues/1203):
+  Fix a matching bug related to the suffix literal optimization.
 * BUG: Increase the default stack size for PCRE2's JIT.
 
 
