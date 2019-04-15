@@ -2019,7 +2019,8 @@ or the '--no-pre' flag will disable this behavior.
     WARNING: When this flag is set, ripgrep will unconditionally spawn a
     process for every file that is searched. Therefore, this can incur an
     unnecessarily large performance penalty if you don't otherwise need the
-    flexibility offered by this flag.
+    flexibility offered by this flag. One possible mitigation to this is to use
+    the '--pre-glob' flag to limit which files a preprocessor is run with.
 
 A preprocessor is not run when ripgrep is searching stdin.
 
