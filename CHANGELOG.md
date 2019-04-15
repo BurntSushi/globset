@@ -1,5 +1,5 @@
-11.0.0 (TBD)
-============
+11.0.0 (2019-04-15)
+===================
 ripgrep 11 is a new major version release of ripgrep that contains many bug
 fixes, some performance improvements and a few feature enhancements. Notably,
 ripgrep's user experience for binary file filtering has been improved. See the
@@ -32,9 +32,9 @@ This release increases the **minimum supported Rust version** from 1.28.0 to
   terminal. That is, `rg -uuu foo` should now be equivalent to `grep -r foo`.
 * The `avx-accel` feature of ripgrep has been removed since it is no longer
   necessary. All uses of AVX in ripgrep are now enabled automatically via
-  runtime CPU feature detection. The `simd-accel` feature does remain
-  available, however, it does increase compilation times substantially at the
-  moment.
+  runtime CPU feature detection. The `simd-accel` feature does remain available
+  (only for enabling SIMD for transcoding), however, it does increase
+  compilation times substantially at the moment.
 
 Performance improvements:
 

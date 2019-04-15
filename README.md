@@ -294,8 +294,8 @@ then ripgrep can be installed using a binary `.deb` file provided in each
 [ripgrep release](https://github.com/BurntSushi/ripgrep/releases).
 
 ```
-$ curl -LO https://github.com/BurntSushi/ripgrep/releases/download/0.10.0/ripgrep_0.10.0_amd64.deb
-$ sudo dpkg -i ripgrep_0.10.0_amd64.deb
+$ curl -LO https://github.com/BurntSushi/ripgrep/releases/download/11.0.0/ripgrep_11.0.0_amd64.deb
+$ sudo dpkg -i ripgrep_11.0.0_amd64.deb
 ```
 
 If you run Debian Buster (currently Debian testing) or Debian sid, ripgrep is
