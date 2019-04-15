@@ -633,10 +633,10 @@ rgtest!(f993_null_data, |dir: Dir, mut cmd: TestCommand| {
 // See: https://github.com/BurntSushi/ripgrep/issues/1078
 //
 // N.B. There are many more tests in the grep-printer crate.
-rgtest!(f1078_max_column_preview1, |dir: Dir, mut cmd: TestCommand| {
+rgtest!(f1078_max_columns_preview1, |dir: Dir, mut cmd: TestCommand| {
     dir.create("sherlock", SHERLOCK);
     cmd.args(&[
-        "-M46", "--max-column-preview",
+        "-M46", "--max-columns-preview",
         "exhibited|dusted|has to have it",
     ]);
 
@@ -647,10 +647,10 @@ sherlock:and exhibited clearly, with a label attached.
     eqnice!(expected, cmd.stdout());
 });
 
-rgtest!(f1078_max_column_preview2, |dir: Dir, mut cmd: TestCommand| {
+rgtest!(f1078_max_columns_preview2, |dir: Dir, mut cmd: TestCommand| {
     dir.create("sherlock", SHERLOCK);
     cmd.args(&[
-        "-M43", "--max-column-preview",
+        "-M43", "--max-columns-preview",
         // Doing a replacement forces ripgrep to show the number of remaining
         // matches. Normally, this happens by default when printing a tty with
         // colors.

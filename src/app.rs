@@ -583,7 +583,7 @@ pub fn all_args_and_flags() -> Vec<RGArg> {
     flag_line_number(&mut args);
     flag_line_regexp(&mut args);
     flag_max_columns(&mut args);
-    flag_max_column_preview(&mut args);
+    flag_max_columns_preview(&mut args);
     flag_max_count(&mut args);
     flag_max_depth(&mut args);
     flag_max_filesize(&mut args);
@@ -1490,7 +1490,7 @@ When this flag is omitted or is set to 0, then it has no effect.
     args.push(arg);
 }
 
-fn flag_max_column_preview(args: &mut Vec<RGArg>) {
+fn flag_max_columns_preview(args: &mut Vec<RGArg>) {
     const SHORT: &str = "Print a preview for lines exceeding the limit.";
     const LONG: &str = long!("\
 When the '--max-columns' flag is used, ripgrep will by default completely
@@ -1501,16 +1501,16 @@ of the line exceeding the limit is not shown.
 
 If the '--max-columns' flag is not set, then this has no effect.
 
-This flag can be disabled with '--no-max-column-preview'.
+This flag can be disabled with '--no-max-columns-preview'.
 ");
-    let arg = RGArg::switch("max-column-preview")
+    let arg = RGArg::switch("max-columns-preview")
         .help(SHORT).long_help(LONG)
-        .overrides("no-max-column-preview");
+        .overrides("no-max-columns-preview");
     args.push(arg);
 
-    let arg = RGArg::switch("no-max-column-preview")
+    let arg = RGArg::switch("no-max-columns-preview")
         .hidden()
-        .overrides("max-column-preview");
+        .overrides("max-columns-preview");
     args.push(arg);
 }
 

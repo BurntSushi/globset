@@ -34,7 +34,7 @@ struct Config {
     per_match: bool,
     replacement: Arc<Option<Vec<u8>>>,
     max_columns: Option<u64>,
-    max_column_preview: bool,
+    max_columns_preview: bool,
     max_matches: Option<u64>,
     column: bool,
     byte_offset: bool,
@@ -58,7 +58,7 @@ impl Default for Config {
             per_match: false,
             replacement: Arc::new(None),
             max_columns: None,
-            max_column_preview: false,
+            max_columns_preview: false,
             max_matches: None,
             column: false,
             byte_offset: false,
@@ -273,8 +273,8 @@ impl StandardBuilder {
     /// If no limit is set, then enabling this has no effect.
     ///
     /// This is disabled by default.
-    pub fn max_column_preview(&mut self, yes: bool) -> &mut StandardBuilder {
-        self.config.max_column_preview = yes;
+    pub fn max_columns_preview(&mut self, yes: bool) -> &mut StandardBuilder {
+        self.config.max_columns_preview = yes;
         self
     }
 
@@ -1273,7 +1273,7 @@ impl<'a, M: Matcher, W: WriteColor> StandardImpl<'a, M, W> {
         matches: &[Match],
         match_index: &mut usize,
     ) -> io::Result<()> {
-        if self.config().max_column_preview {
+        if self.config().max_columns_preview {
             let original = line;
             let end = BStr::new(&bytes[line])
                 .grapheme_indices()
@@ -2342,7 +2342,7 @@ but Doctor Watson has to have it taken out for him and dusted,
         let matcher = RegexMatcher::new("exhibited|dusted").unwrap();
         let mut printer = StandardBuilder::new()
             .max_columns(Some(46))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
             .line_number(false)
@@ -2393,7 +2393,7 @@ but Doctor Watson has to have it taken out for him and dusted,
         let mut printer = StandardBuilder::new()
             .stats(true)
             .max_columns(Some(46))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
             .line_number(false)
@@ -2419,7 +2419,7 @@ and exhibited clearly, with a label attached.
         let mut printer = StandardBuilder::new()
             .stats(true)
             .max_columns(Some(46))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
             .line_number(false)
@@ -2447,7 +2447,7 @@ and exhibited clearly, with a label attached.
         let mut printer = StandardBuilder::new()
             .stats(true)
             .max_columns(Some(46))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
             .line_number(false)
@@ -2500,7 +2500,7 @@ but Doctor Watson has to have it taken out for him and dusted,
         let mut printer = StandardBuilder::new()
             .stats(true)
             .max_columns(Some(46))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
             .line_number(false)
@@ -2817,7 +2817,7 @@ Holmeses, success in the province of detective work must always
         let mut printer = StandardBuilder::new()
             .only_matching(true)
             .max_columns(Some(10))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .column(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
@@ -2885,7 +2885,7 @@ Holmeses, success in the province of detective work must always
         let mut printer = StandardBuilder::new()
             .only_matching(true)
             .max_columns(Some(10))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .column(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
@@ -2947,7 +2947,7 @@ Holmeses, success in the province of detective work must always
         let mut printer = StandardBuilder::new()
             .only_matching(true)
             .max_columns(Some(50))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .column(true)
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
@@ -3171,7 +3171,7 @@ Holmeses, success in the province of detective work must always
         let matcher = RegexMatcher::new(r"Sherlock|Doctor (\w+)").unwrap();
         let mut printer = StandardBuilder::new()
             .max_columns(Some(67))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .replacement(Some(b"doctah $1 MD".to_vec()))
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
@@ -3200,7 +3200,7 @@ Holmeses, success in the province of detective work must always
         ).unwrap();
         let mut printer = StandardBuilder::new()
             .max_columns(Some(43))
-            .max_column_preview(true)
+            .max_columns_preview(true)
             .replacement(Some(b"xxx".to_vec()))
             .build(NoColor::new(vec![]));
         SearcherBuilder::new()
