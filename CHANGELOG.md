@@ -1,3 +1,15 @@
+11.0.1 (2019-04-16)
+===================
+ripgrep 11.0.1 is a new patch release that fixes a search regression introduced
+in the previous 11.0.0 release. In particular, ripgrep can enter an infinite
+loop for some search patterns when searching invalid UTF-8.
+
+Bug fixes:
+
+* [BUG #1247](https://github.com/BurntSushi/ripgrep/issues/1247):
+  Fix search bug that can cause ripgrep to enter an infinite loop.
+
+
 11.0.0 (2019-04-15)
 ===================
 ripgrep 11 is a new major version release of ripgrep that contains many bug
