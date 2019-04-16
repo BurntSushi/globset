@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "ripgrep"
-version = "11.0.0"
+version = "11.0.1"
 dependencies = [
  "bstr 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
