@@ -1594,10 +1594,11 @@ impl ArgMatches {
         if self.is_present("no-filename") {
             false
         } else {
+            let path_stdin = Path::new("-");
             self.is_present("with-filename")
             || self.is_present("vimgrep")
             || paths.len() > 1
-            || paths.get(0).map_or(false, |p| p.is_dir())
+            || paths.get(0).map_or(false, |p| p != path_stdin && p.is_dir())
         }
     }
 }

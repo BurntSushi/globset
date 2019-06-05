@@ -706,6 +706,18 @@ rgtest!(r1203_reverse_suffix_literal, |dir: Dir, _: TestCommand| {
     eqnice!("153.230000\n", cmd.arg(r"\d\d\d000").arg("test").stdout());
 });
 
+// See: https://github.com/BurntSushi/ripgrep/issues/1223
+rgtest!(r1223_no_dir_check_for_default_path, |dir: Dir, mut cmd: TestCommand| {
+    dir.create_dir("-");
+    dir.create("a.json", "{}");
+    dir.create("a.txt", "some text");
+
+    eqnice!(
+        "a.json\na.txt\n",
+        sort_lines(&cmd.arg("a").pipe(b"a.json\na.txt"))
+    );
+});
+
 // See: https://github.com/BurntSushi/ripgrep/issues/1259
 rgtest!(r1259_drop_last_byte_nonl, |dir: Dir, mut cmd: TestCommand| {
     dir.create("patterns-nonl", "[foo]");
