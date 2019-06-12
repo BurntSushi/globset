@@ -219,7 +219,7 @@ const DEFAULT_TYPES: &'static [(&'static str, &'static [&'static str])] = &[
     ("msbuild", &[
         "*.csproj", "*.fsproj", "*.vcxproj", "*.proj", "*.props", "*.targets"
     ]),
-    ("nim", &["*.nim"]),
+    ("nim", &["*.nim", "*.nimf", "*.nimble", "*.nims"]),
     ("nix", &["*.nix"]),
     ("objc", &["*.h", "*.m"]),
     ("objcpp", &["*.h", "*.mm"]),
