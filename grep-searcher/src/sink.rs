@@ -1,3 +1,4 @@
+use std::error;
 use std::fmt;
 use std::io;
 
@@ -49,9 +50,9 @@ impl SinkError for io::Error {
 
 /// A `Box<std::error::Error>` can be used as an error for `Sink`
 /// implementations out of the box.
-impl SinkError for Box<::std::error::Error> {
-    fn error_message<T: fmt::Display>(message: T) -> Box<::std::error::Error> {
-        Box::<::std::error::Error>::from(message.to_string())
+impl SinkError for Box<dyn error::Error> {
+    fn error_message<T: fmt::Display>(message: T) -> Box<dyn error::Error> {
+        Box::<dyn error::Error>::from(message.to_string())
     }
 }
 

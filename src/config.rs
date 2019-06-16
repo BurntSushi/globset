@@ -55,7 +55,7 @@ pub fn args() -> Vec<OsString> {
 /// for each line in addition to successfully parsed arguments.
 fn parse<P: AsRef<Path>>(
     path: P,
-) -> Result<(Vec<OsString>, Vec<Box<Error>>)> {
+) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)> {
     let path = path.as_ref();
     match File::open(&path) {
         Ok(file) => parse_reader(file),
@@ -76,7 +76,7 @@ fn parse<P: AsRef<Path>>(
 /// in addition to successfully parsed arguments.
 fn parse_reader<R: io::Read>(
     rdr: R,
-) -> Result<(Vec<OsString>, Vec<Box<Error>>)> {
+) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)> {
     let bufrdr = io::BufReader::new(rdr);
     let (mut args, mut errs) = (vec![], vec![]);
     let mut line_number = 0;

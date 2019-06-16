@@ -111,7 +111,7 @@ pub fn unescape(s: &str) -> Vec<u8> {
             }
             HexFirst => {
                 match c {
-                    '0'...'9' | 'A'...'F' | 'a'...'f' => {
+                    '0'..='9' | 'A'..='F' | 'a'..='f' => {
                         state = HexSecond(c);
                     }
                     c => {
@@ -122,7 +122,7 @@ pub fn unescape(s: &str) -> Vec<u8> {
             }
             HexSecond(first) => {
                 match c {
-                    '0'...'9' | 'A'...'F' | 'a'...'f' => {
+                    '0'..='9' | 'A'..='F' | 'a'..='f' => {
                         let ordinal = format!("{}{}", first, c);
                         let byte = u8::from_str_radix(&ordinal, 16).unwrap();
                         bytes.push(byte);
@@ -174,7 +174,7 @@ fn escape_char(cp: char, into: &mut String) {
 /// Adds the given byte to the given string, escaping it if necessary.
 fn escape_byte(byte: u8, into: &mut String) {
     match byte {
-        0x21...0x5B | 0x5D...0x7D => into.push(byte as char),
+        0x21..=0x5B | 0x5D..=0x7D => into.push(byte as char),
         b'\n' => into.push_str(r"\n"),
         b'\r' => into.push_str(r"\r"),
         b'\t' => into.push_str(r"\t"),

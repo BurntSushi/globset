@@ -481,8 +481,8 @@ pub struct WalkBuilder {
 
 #[derive(Clone)]
 enum Sorter {
-    ByName(Arc<Fn(&OsStr, &OsStr) -> cmp::Ordering + Send + Sync + 'static>),
-    ByPath(Arc<Fn(&Path, &Path) -> cmp::Ordering + Send + Sync + 'static>),
+    ByName(Arc<dyn Fn(&OsStr, &OsStr) -> cmp::Ordering + Send + Sync + 'static>),
+    ByPath(Arc<dyn Fn(&Path, &Path) -> cmp::Ordering + Send + Sync + 'static>),
 }
 
 impl fmt::Debug for WalkBuilder {
@@ -1075,7 +1075,7 @@ impl WalkParallel {
     pub fn run<F>(
         self,
         mut mkf: F,
-    ) where F: FnMut() -> Box<FnMut(Result<DirEntry, Error>) -> WalkState + Send + 'static> {
+    ) where F: FnMut() -> Box<dyn FnMut(Result<DirEntry, Error>) -> WalkState + Send + 'static> {
         let mut f = mkf();
         let threads = self.threads();
         // TODO: Figure out how to use a bounded channel here. With an
@@ -1253,7 +1253,7 @@ impl Work {
 /// Note that a worker is *both* a producer and a consumer.
 struct Worker {
     /// The caller's callback.
-    f: Box<FnMut(Result<DirEntry, Error>) -> WalkState + Send + 'static>,
+    f: Box<dyn FnMut(Result<DirEntry, Error>) -> WalkState + Send + 'static>,
     /// The push side of our mpmc queue.
     tx: channel::Sender<Message>,
     /// The receive side of our mpmc queue.

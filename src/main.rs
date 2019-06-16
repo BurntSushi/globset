@@ -1,3 +1,4 @@
+use std::error;
 use std::io::{self, Write};
 use std::process;
 use std::sync::{Arc, Mutex};
@@ -42,7 +43,7 @@ mod subject;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
+type Result<T> = ::std::result::Result<T, Box<dyn error::Error>>;
 
 fn main() {
     if let Err(err) = Args::parse().and_then(try_main) {
