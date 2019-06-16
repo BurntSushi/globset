@@ -6,6 +6,8 @@ Bug fixes:
 
 * [BUG #1259](https://github.com/BurntSushi/ripgrep/issues/1259):
   Fix bug where the last byte of a `-f file` was stripped if it wasn't a `\n`.
+* [BUG #1302](https://github.com/BurntSushi/ripgrep/issues/1302):
+  Show better error messages when a non-existent preprocessor command is given.
 
 
 11.0.1 (2019-04-16)
