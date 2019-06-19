@@ -315,7 +315,24 @@ pub struct SearchWorker<W> {
 impl<W: WriteColor> SearchWorker<W> {
     /// Execute a search over the given subject.
     pub fn search(&mut self, subject: &Subject) -> io::Result<SearchResult> {
-        self.search_impl(subject)
+        let bin =
+            if subject.is_explicit() {
+                self.config.binary_explicit.clone()
+            } else {
+                self.config.binary_implicit.clone()
+            };
+        self.searcher.set_binary_detection(bin);
+
+        let path = subject.path();
+        if subject.is_stdin() {
+            self.search_reader(path, io::stdin().lock())
+        } else if self.should_preprocess(path) {
+            self.search_preprocessor(path)
+        } else if self.should_decompress(path) {
+            self.search_decompress(path)
+        } else {
+            self.search_path(path)
+        }
     }
 
     /// Return a mutable reference to the underlying printer.
@@ -338,30 +355,6 @@ impl<W: WriteColor> SearchWorker<W> {
             self.printer().print_stats_json(total_duration, stats)
         } else {
             self.printer().print_stats(total_duration, stats)
-        }
-    }
-
-    /// Search the given subject using the appropriate strategy.
-    fn search_impl(&mut self, subject: &Subject) -> io::Result<SearchResult> {
-        let bin =
-            if subject.is_explicit() {
-                self.config.binary_explicit.clone()
-            } else {
-                self.config.binary_implicit.clone()
-            };
-        self.searcher.set_binary_detection(bin);
-
-        let path = subject.path();
-        if subject.is_stdin() {
-            let stdin = io::stdin();
-            // A `return` here appeases the borrow checker. NLL will fix this.
-            return self.search_reader(path, stdin.lock());
-        } else if self.should_preprocess(path) {
-            self.search_preprocessor(path)
-        } else if self.should_decompress(path) {
-            self.search_decompress(path)
-        } else {
-            self.search_path(path)
         }
     }
 
@@ -392,8 +385,8 @@ impl<W: WriteColor> SearchWorker<W> {
         &mut self,
         path: &Path,
     ) -> io::Result<SearchResult> {
-        let bin = self.config.preprocessor.clone().unwrap();
-        let mut cmd = Command::new(&bin);
+        let bin = self.config.preprocessor.as_ref().unwrap();
+        let mut cmd = Command::new(bin);
         cmd.arg(path).stdin(Stdio::from(File::open(path)?));
 
         let rdr = self
