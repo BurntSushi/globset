@@ -1,7 +1,7 @@
 use std::ffi::OsStr;
 use std::str;
 
-use bstr::{BStr, BString};
+use bstr::{ByteSlice, ByteVec};
 
 /// A single state in the state machine used by `unescape`.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -38,7 +38,6 @@ enum State {
 /// assert_eq!(r"foo\nbar\xFFbaz", escape(b"foo\nbar\xFFbaz"));
 /// ```
 pub fn escape(bytes: &[u8]) -> String {
-    let bytes = BStr::new(bytes);
     let mut escaped = String::new();
     for (s, e, ch) in bytes.char_indices() {
         if ch == '\u{FFFD}' {
@@ -56,7 +55,7 @@ pub fn escape(bytes: &[u8]) -> String {
 ///
 /// This is like [`escape`](fn.escape.html), but accepts an OS string.
 pub fn escape_os(string: &OsStr) -> String {
-    escape(BString::from_os_str_lossy(string).as_bytes())
+    escape(Vec::from_os_str_lossy(string).as_bytes())
 }
 
 /// Unescapes a string.

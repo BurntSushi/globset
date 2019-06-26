@@ -17,7 +17,7 @@ fn main() {
     }
 }
 
-fn example() -> Result<(), Box<Error>> {
+fn example() -> Result<(), Box<dyn Error>> {
     let pattern = match env::args().nth(1) {
         Some(pattern) => pattern,
         None => return Err(From::from(format!(

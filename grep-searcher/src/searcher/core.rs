@@ -1,6 +1,6 @@
 use std::cmp;
 
-use bstr::B;
+use bstr::ByteSlice;
 
 use grep_matcher::{LineMatchKind, Matcher};
 use lines::{self, LineStep};
@@ -161,7 +161,7 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
             BinaryDetection::Convert(b) => b,
             _ => return Ok(false),
         };
-        if let Some(i) = B(&buf[*range]).find_byte(binary_byte) {
+        if let Some(i) = buf[*range].find_byte(binary_byte) {
             let offset = range.start() + i;
             self.binary_byte_offset = Some(offset);
             if !self.binary_data(offset as u64)? {

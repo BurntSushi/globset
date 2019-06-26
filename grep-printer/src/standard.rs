@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Instant;
 
-use bstr::BStr;
+use bstr::ByteSlice;
 use grep_matcher::{Match, Matcher};
 use grep_searcher::{
     LineStep, Searcher,
@@ -1274,7 +1274,7 @@ impl<'a, M: Matcher, W: WriteColor> StandardImpl<'a, M, W> {
     ) -> io::Result<()> {
         if self.config().max_columns_preview {
             let original = line;
-            let end = BStr::new(&bytes[line])
+            let end = bytes[line]
                 .grapheme_indices()
                 .map(|(_, end, _)| end)
                 .take(self.config().max_columns.unwrap_or(0) as usize)
@@ -1396,7 +1396,7 @@ impl<'a, M: Matcher, W: WriteColor> StandardImpl<'a, M, W> {
             }
             let remainder = format!(
                 "after match (found {:?} byte around offset {})\n",
-                BStr::new(&[byte]), offset,
+                [byte].as_bstr(), offset,
             );
             self.write(remainder.as_bytes())?;
         } else if let Some(byte) = bin.convert_byte() {
@@ -1407,7 +1407,7 @@ impl<'a, M: Matcher, W: WriteColor> StandardImpl<'a, M, W> {
             }
             let remainder = format!(
                 "matches (found {:?} byte around offset {})\n",
-                BStr::new(&[byte]), offset,
+                [byte].as_bstr(), offset,
             );
             self.write(remainder.as_bytes())?;
         }

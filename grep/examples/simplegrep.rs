@@ -21,7 +21,7 @@ fn main() {
     }
 }
 
-fn try_main() -> Result<(), Box<Error>> {
+fn try_main() -> Result<(), Box<dyn Error>> {
     let mut args: Vec<OsString> = env::args_os().collect();
     if args.len() < 2 {
         return Err("Usage: simplegrep <pattern> [<path> ...]".into());
@@ -32,7 +32,7 @@ fn try_main() -> Result<(), Box<Error>> {
     search(cli::pattern_from_os(&args[1])?, &args[2..])
 }
 
-fn search(pattern: &str, paths: &[OsString]) -> Result<(), Box<Error>> {
+fn search(pattern: &str, paths: &[OsString]) -> Result<(), Box<dyn Error>> {
     let matcher = RegexMatcher::new_line_matcher(&pattern)?;
     let mut searcher = SearcherBuilder::new()
         .binary_detection(BinaryDetection::quit(b'\x00'))

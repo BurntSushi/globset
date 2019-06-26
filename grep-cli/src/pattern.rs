@@ -161,7 +161,7 @@ pub fn patterns_from_reader<R: io::Read>(rdr: R) -> io::Result<Vec<String>> {
     let mut line_number = 0;
     io::BufReader::new(rdr).for_byte_line(|line| {
         line_number += 1;
-        match pattern_from_bytes(line.as_bytes()) {
+        match pattern_from_bytes(line) {
             Ok(pattern) => {
                 patterns.push(pattern.to_string());
                 Ok(true)

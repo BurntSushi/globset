@@ -1,7 +1,7 @@
 use std::cmp;
 use std::io;
 
-use bstr::{BStr, BString};
+use bstr::ByteSlice;
 
 /// The default buffer capacity that we use for the line buffer.
 pub(crate) const DEFAULT_BUFFER_CAPACITY: usize = 8 * (1<<10); // 8 KB
@@ -122,7 +122,7 @@ impl LineBufferBuilder {
     pub fn build(&self) -> LineBuffer {
         LineBuffer {
             config: self.config,
-            buf: BString::from(vec![0; self.config.capacity]),
+            buf: vec![0; self.config.capacity],
             pos: 0,
             last_lineterm: 0,
             end: 0,
@@ -254,13 +254,14 @@ impl<'b, R: io::Read> LineBufferReader<'b, R> {
 
     /// Return the contents of this buffer.
     pub fn buffer(&self) -> &[u8] {
-        self.line_buffer.buffer().as_bytes()
+        self.line_buffer.buffer()
     }
 
-    /// Return the underlying buffer as a byte string. Used for tests only.
+    /// Return the buffer as a BStr, used for convenient equality checking
+    /// in tests only.
     #[cfg(test)]
-    fn bstr(&self) -> &BStr {
-        self.line_buffer.buffer()
+    fn bstr(&self) -> &::bstr::BStr {
+        self.buffer().as_bstr()
     }
 
     /// Consume the number of bytes provided. This must be less than or equal
@@ -289,7 +290,7 @@ pub struct LineBuffer {
     /// The configuration of this buffer.
     config: Config,
     /// The primary buffer with which to hold data.
-    buf: BString,
+    buf: Vec<u8>,
     /// The current position of this buffer. This is always a valid sliceable
     /// index into `buf`, and its maximum value is the length of `buf`.
     pos: usize,
@@ -352,13 +353,13 @@ impl LineBuffer {
     }
 
     /// Return the contents of this buffer.
-    fn buffer(&self) -> &BStr {
+    fn buffer(&self) -> &[u8] {
         &self.buf[self.pos..self.last_lineterm]
     }
 
     /// Return the contents of the free space beyond the end of the buffer as
     /// a mutable slice.
-    fn free_buffer(&mut self) -> &mut BStr {
+    fn free_buffer(&mut self) -> &mut [u8] {
         &mut self.buf[self.end..]
     }
 
@@ -481,7 +482,7 @@ impl LineBuffer {
         }
 
         let roll_len = self.end - self.pos;
-        self.buf.copy_within(self.pos.., 0);
+        self.buf.copy_within_str(self.pos.., 0);
         self.pos = 0;
         self.last_lineterm = roll_len;
         self.end = roll_len;
@@ -519,7 +520,7 @@ impl LineBuffer {
 
 /// Replaces `src` with `replacement` in bytes, and return the offset of the
 /// first replacement, if one exists.
-fn replace_bytes(bytes: &mut BStr, src: u8, replacement: u8) -> Option<usize> {
+fn replace_bytes(bytes: &mut [u8], src: u8, replacement: u8) -> Option<usize> {
     if src == replacement {
         return None;
     }
@@ -542,7 +543,7 @@ fn replace_bytes(bytes: &mut BStr, src: u8, replacement: u8) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use std::str;
-    use bstr::BString;
+    use bstr::{ByteSlice, ByteVec};
     use super::*;
 
     const SHERLOCK: &'static str = "\
@@ -563,7 +564,7 @@ and exhibited clearly, with a label attached.\
         src: u8,
         replacement: u8,
     ) -> (String, Option<usize>) {
-        let mut dst = BString::from(slice);
+        let mut dst = Vec::from(slice);
         let result = replace_bytes(&mut dst, src, replacement);
         (dst.into_string().unwrap(), result)
     }
@@ -677,12 +678,12 @@ and exhibited clearly, with a label attached.\
         let mut linebuf = LineBufferBuilder::new().capacity(1).build();
         let mut rdr = LineBufferReader::new(bytes.as_bytes(), &mut linebuf);
 
-        let mut got = BString::new();
+        let mut got = vec![];
         while rdr.fill().unwrap() {
-            got.push(rdr.buffer());
+            got.push_str(rdr.buffer());
             rdr.consume_all();
         }
-        assert_eq!(bytes, got);
+        assert_eq!(bytes, got.as_bstr());
         assert_eq!(rdr.absolute_byte_offset(), bytes.len() as u64);
         assert_eq!(rdr.binary_byte_offset(), None);
     }

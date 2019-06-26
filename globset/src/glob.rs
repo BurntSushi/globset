@@ -120,7 +120,7 @@ impl GlobMatcher {
 
     /// Tests whether the given path matches this pattern or not.
     pub fn is_match_candidate(&self, path: &Candidate) -> bool {
-        self.re.is_match(path.path.as_bytes())
+        self.re.is_match(&path.path)
     }
 }
 
@@ -145,7 +145,7 @@ impl GlobStrategic {
 
     /// Tests whether the given path matches this pattern or not.
     fn is_match_candidate(&self, candidate: &Candidate) -> bool {
-        let byte_path = candidate.path.as_bytes();
+        let byte_path = &*candidate.path;
 
         match self.strategy {
             MatchStrategy::Literal(ref lit) => lit.as_bytes() == byte_path,

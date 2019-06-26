@@ -2,7 +2,7 @@
 A collection of routines for performing operations on lines.
 */
 
-use bstr::B;
+use bstr::ByteSlice;
 use bytecount;
 use grep_matcher::{LineTerminator, Match};
 
@@ -85,7 +85,7 @@ impl LineStep {
     #[inline(always)]
     fn next_impl(&mut self, mut bytes: &[u8]) -> Option<(usize, usize)> {
         bytes = &bytes[..self.end];
-        match B(&bytes[self.pos..]).find_byte(self.line_term) {
+        match bytes[self.pos..].find_byte(self.line_term) {
             None => {
                 if self.pos < bytes.len() {
                     let m = (self.pos, bytes.len());
@@ -135,14 +135,14 @@ pub fn locate(
     line_term: u8,
     range: Match,
 ) -> Match {
-    let line_start = B(&bytes[..range.start()])
+    let line_start = bytes[..range.start()]
         .rfind_byte(line_term)
         .map_or(0, |i| i + 1);
     let line_end =
         if range.end() > line_start && bytes[range.end() - 1] == line_term {
             range.end()
         } else {
-            B(&bytes[range.end()..])
+            bytes[range.end()..]
                 .find_byte(line_term)
                 .map_or(bytes.len(), |i| range.end() + i + 1)
         };
@@ -182,7 +182,7 @@ fn preceding_by_pos(
         pos -= 1;
     }
     loop {
-        match B(&bytes[..pos]).rfind_byte(line_term) {
+        match bytes[..pos].rfind_byte(line_term) {
             None => {
                 return 0;
             }

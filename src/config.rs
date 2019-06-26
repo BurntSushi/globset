@@ -9,7 +9,7 @@ use std::io;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use bstr::io::BufReadExt;
+use bstr::{io::BufReadExt, ByteSlice};
 use log;
 
 use crate::Result;

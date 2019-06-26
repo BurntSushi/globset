@@ -1,15 +1,15 @@
 use std::borrow::Cow;
 
-use bstr::BStr;
+use bstr::{ByteSlice, ByteVec};
 
 /// The final component of the path, if it is a normal file.
 ///
 /// If the path terminates in ., .., or consists solely of a root of prefix,
 /// file_name will return None.
-pub fn file_name<'a>(path: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
+pub fn file_name<'a>(path: &Cow<'a, [u8]>) -> Option<Cow<'a, [u8]>> {
     if path.is_empty() {
         return None;
-    } else if path.last() == Some(b'.') {
+    } else if path.last_byte() == Some(b'.') {
         return None;
     }
     let last_slash = path.rfind_byte(b'/').map(|i| i + 1).unwrap_or(0);
@@ -39,7 +39,7 @@ pub fn file_name<'a>(path: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
 /// a pattern like `*.rs` is obviously trying to match files with a `rs`
 /// extension, but it also matches files like `.rs`, which doesn't have an
 /// extension according to std::path::Path::extension.
-pub fn file_name_ext<'a>(name: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
+pub fn file_name_ext<'a>(name: &Cow<'a, [u8]>) -> Option<Cow<'a, [u8]>> {
     if name.is_empty() {
         return None;
     }
@@ -60,7 +60,7 @@ pub fn file_name_ext<'a>(name: &Cow<'a, BStr>) -> Option<Cow<'a, BStr>> {
 /// Normalizes a path to use `/` as a separator everywhere, even on platforms
 /// that recognize other characters as separators.
 #[cfg(unix)]
-pub fn normalize_path(path: Cow<BStr>) -> Cow<BStr> {
+pub fn normalize_path(path: Cow<[u8]>) -> Cow<[u8]> {
     // UNIX only uses /, so we're good.
     path
 }
@@ -68,7 +68,7 @@ pub fn normalize_path(path: Cow<BStr>) -> Cow<BStr> {
 /// Normalizes a path to use `/` as a separator everywhere, even on platforms
 /// that recognize other characters as separators.
 #[cfg(not(unix))]
-pub fn normalize_path(mut path: Cow<BStr>) -> Cow<BStr> {
+pub fn normalize_path(mut path: Cow<[u8]>) -> Cow<[u8]> {
     use std::path::is_separator;
 
     for i in 0..path.len() {
@@ -84,7 +84,7 @@ pub fn normalize_path(mut path: Cow<BStr>) -> Cow<BStr> {
 mod tests {
     use std::borrow::Cow;
 
-    use bstr::{B, BString};
+    use bstr::{B, ByteVec};
 
     use super::{file_name_ext, normalize_path};
 
@@ -92,7 +92,7 @@ mod tests {
         ($name:ident, $file_name:expr, $ext:expr) => {
             #[test]
             fn $name() {
-                let bs = BString::from($file_name);
+                let bs = Vec::from($file_name);
                 let got = file_name_ext(&Cow::Owned(bs));
                 assert_eq!($ext.map(|s| Cow::Borrowed(B(s))), got);
             }
@@ -109,7 +109,7 @@ mod tests {
         ($name:ident, $path:expr, $expected:expr) => {
             #[test]
             fn $name() {
-                let bs = BString::from_slice($path);
+                let bs = Vec::from_slice($path);
                 let got = normalize_path(Cow::Owned(bs));
                 assert_eq!($expected.to_vec(), got.into_owned());
             }
