@@ -29,6 +29,7 @@ Please see the [CHANGELOG](CHANGELOG.md) for a release history.
 * [Configuration files](GUIDE.md#configuration-file)
 * [Shell completions](FAQ.md#complete)
 * [Building](#building)
+* [Translations](#translations)
 
 
 ### Screenshot of search results
@@ -418,3 +419,11 @@ $ cargo test --all
 ```
 
 from the repository root.
+
+
+### Translations
+
+The following is a list of known translations of ripgrep's documentation. These
+are unofficially maintained and may not be up to date.
+
+* [Chinese](https://github.com/chinanf-boy/ripgrep-zh#%E6%9B%B4%E6%96%B0-)
