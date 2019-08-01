@@ -71,10 +71,31 @@ impl RegexMatcherBuilder {
         &self,
         literals: &[B],
     ) -> Result<RegexMatcher, Error> {
-        let slices: Vec<_> = literals.iter().map(|s| s.as_ref()).collect();
-        if !self.config.can_plain_aho_corasick() || literals.len() < 40 {
+        let mut has_escape = false;
+        let mut slices = vec![];
+        for lit in literals {
+            slices.push(lit.as_ref());
+            has_escape = has_escape || lit.as_ref().contains('\\');
+        }
+        // Even when we have a fixed set of literals, we might still want to
+        // use the regex engine. Specifically, if any string has an escape
+        // in it, then we probably can't feed it to Aho-Corasick without
+        // removing the escape. Additionally, if there are any particular
+        // special match semantics we need to honor, that Aho-Corasick isn't
+        // enough. Finally, the regex engine can do really well with a small
+        // number of literals (at time of writing, this is changing soon), so
+        // we use it when there's a small set.
+        //
+        // Yes, this is one giant hack. Ideally, this entirely separate literal
+        // matcher that uses Aho-Corasick would be pushed down into the regex
+        // engine.
+        if has_escape
+            || !self.config.can_plain_aho_corasick()
+            || literals.len() < 40
+        {
             return self.build(&slices.join("|"));
         }
+
         let matcher = MultiLiteralMatcher::new(&slices)?;
         let imp = RegexMatcherImpl::MultiLiteral(matcher);
         Ok(RegexMatcher {

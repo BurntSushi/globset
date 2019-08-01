@@ -716,3 +716,13 @@ rgtest!(r1259_drop_last_byte_nonl, |dir: Dir, mut cmd: TestCommand| {
     cmd = dir.command();
     eqnice!("fz\n", cmd.arg("-f").arg("patterns-nl").arg("test").stdout());
 });
+
+// See: https://github.com/BurntSushi/ripgrep/issues/1334
+rgtest!(r1334_crazy_literals, |dir: Dir, mut cmd: TestCommand| {
+    dir.create("patterns", &"1.208.0.0/12\n".repeat(40));
+    dir.create("corpus", "1.208.0.0/12\n");
+    eqnice!(
+        "1.208.0.0/12\n",
+        cmd.arg("-Ff").arg("patterns").arg("corpus").stdout()
+    );
+});
