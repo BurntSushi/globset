@@ -571,6 +571,7 @@ pub fn all_args_and_flags() -> Vec<RGArg> {
     flag_fixed_strings(&mut args);
     flag_follow(&mut args);
     flag_glob(&mut args);
+    flag_glob_case_insensitive(&mut args);
     flag_heading(&mut args);
     flag_hidden(&mut args);
     flag_iglob(&mut args);
@@ -1215,6 +1216,25 @@ it.
         .help(SHORT).long_help(LONG)
         .multiple()
         .allow_leading_hyphen();
+    args.push(arg);
+}
+
+fn flag_glob_case_insensitive(args: &mut Vec<RGArg>) {
+    const SHORT: &str = "Process all glob patterns case insensitively.";
+    const LONG: &str = long!("\
+Process glob patterns given with the -g/--glob flag case insensitively. This
+effectively treats --glob as --iglob.
+
+This flag can be disabled with the --no-glob-case-insensitive flag.
+");
+    let arg = RGArg::switch("glob-case-insensitive")
+        .help(SHORT).long_help(LONG)
+        .overrides("no-glob-case-insensitive");
+    args.push(arg);
+
+    let arg = RGArg::switch("no-glob-case-insensitive")
+        .hidden()
+        .overrides("glob-case-insensitive");
     args.push(arg);
 }
 

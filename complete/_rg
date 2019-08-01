@@ -104,6 +104,10 @@ _rg() {
     '*'{-g+,--glob=}'[include/exclude files matching specified glob]:glob'
     '*--iglob=[include/exclude files matching specified case-insensitive glob]:glob'
 
+    + '(glob-case-insensitive)' # File-glob case sensitivity options
+    '--glob-case-insensitive[treat -g/--glob patterns case insensitively]'
+    $no'--no-glob-case-insensitive[treat -g/--glob patterns case sensitively]'
+
     + '(heading)' # Heading options
     '(pretty-vimgrep)--heading[show matches grouped by file name]'
     "(pretty-vimgrep)--no-heading[don't show matches grouped by file name]"

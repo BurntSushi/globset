@@ -1268,6 +1268,10 @@ impl ArgMatches {
     /// Builds the set of glob overrides from the command line flags.
     fn overrides(&self) -> Result<Override> {
         let mut builder = OverrideBuilder::new(env::current_dir()?);
+        // Make all globs case insensitive with --glob-case-insensitive.
+        if self.is_present("glob-case-insensitive") {
+            builder.case_insensitive(true).unwrap();
+        }
         for glob in self.values_of_lossy_vec("glob") {
             builder.add(&glob)?;
         }
