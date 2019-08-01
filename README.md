@@ -93,11 +93,11 @@ increases the times to `2.640s` for ripgrep and `10.277s` for GNU grep.
   [the FAQ](FAQ.md#posix4ever) for more details on whether ripgrep can truly
   replace grep.)
 * Like other tools specialized to code search, ripgrep defaults to recursive
-  directory search and won't search files ignored by your `.gitignore` files.
-  It also ignores hidden and binary files by default. ripgrep also implements
-  full support for `.gitignore`, whereas there are many bugs related to that
-  functionality in other code search tools claiming to provide the same
-  functionality.
+  directory search and won't search files ignored by your
+  `.gitignore`/`.ignore`/`.rgignore` files. It also ignores hidden and binary
+  files by default. ripgrep also implements full support for `.gitignore`,
+  whereas there are many bugs related to that functionality in other code
+  search tools claiming to provide the same functionality.
 * ripgrep can search specific types of files. For example, `rg -tpy foo`
   limits your search to Python files and `rg -Tjs foo` excludes Javascript
   files from your search. ripgrep can be taught about new file types with
