@@ -1995,7 +1995,12 @@ or backreferences.
 
 Note that PCRE2 is an optional ripgrep feature. If PCRE2 wasn't included in
 your build of ripgrep, then using this flag will result in ripgrep printing
-an error message and exiting.
+an error message and exiting. PCRE2 may also have worse user experience in
+some cases, since it has fewer introspection APIs than ripgrep's default regex
+engine. For example, if you use a '\n' in a PCRE2 regex without the
+'-U/--multiline' flag, then ripgrep will silently fail to match anything
+instead of reporting an error immediately (like it does with the default
+regex engine).
 
 Related flags: --no-pcre2-unicode
 
