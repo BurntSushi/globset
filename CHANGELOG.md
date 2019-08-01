@@ -1,13 +1,32 @@
-TBD
-===
-TODO.
+11.0.2 (2019-08-01)
+===================
+ripgrep 11.0.2 is a new patch release that fixes a few bugs, including a
+performance regression and a matching bug when using the `-F/--fixed-strings`
+flag.
+
+Feature enhancements:
+
+* [FEATURE #1293](https://github.com/BurntSushi/ripgrep/issues/1293):
+  Added `--glob-case-insensitive` flag that makes `--glob` behave as `--iglob`.
 
 Bug fixes:
 
+* [BUG #1246](https://github.com/BurntSushi/ripgrep/issues/1246):
+  Add translations to README, starting with an unofficial Chinese translation.
 * [BUG #1259](https://github.com/BurntSushi/ripgrep/issues/1259):
   Fix bug where the last byte of a `-f file` was stripped if it wasn't a `\n`.
+* [BUG #1261](https://github.com/BurntSushi/ripgrep/issues/1261):
+  Document that no error is reported when searching for `\n` with `-P/--pcre2`.
+* [BUG #1284](https://github.com/BurntSushi/ripgrep/issues/1284):
+  Mention `.ignore` and `.rgignore` more prominently in the README.
+* [BUG #1292](https://github.com/BurntSushi/ripgrep/issues/1292):
+  Fix bug where `--with-filename` was sometimes enabled incorrectly.
+* [BUG #1268](https://github.com/BurntSushi/ripgrep/issues/1268):
+  Fix major performance regression in GitHub `x86_64-linux` binary release.
 * [BUG #1302](https://github.com/BurntSushi/ripgrep/issues/1302):
   Show better error messages when a non-existent preprocessor command is given.
+* [BUG #1334](https://github.com/BurntSushi/ripgrep/issues/1334):
+  Fix match regression with `-F` flag when patterns contain meta characters.
 
 
 11.0.1 (2019-04-16)
