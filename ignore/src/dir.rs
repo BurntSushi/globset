@@ -721,10 +721,9 @@ mod tests {
     use std::io::Write;
     use std::path::Path;
 
-    use tempfile::{self, TempDir};
-
     use dir::IgnoreBuilder;
     use gitignore::Gitignore;
+    use tests::TempDir;
     use Error;
 
     fn wfile<P: AsRef<Path>>(path: P, contents: &str) {
@@ -744,7 +743,7 @@ mod tests {
     }
 
     fn tmpdir(prefix: &str) -> TempDir {
-        tempfile::Builder::new().prefix(prefix).tempdir().unwrap()
+        TempDir::new().unwrap()
     }
 
     #[test]

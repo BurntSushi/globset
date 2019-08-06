@@ -1730,8 +1730,7 @@ mod tests {
     use std::path::Path;
     use std::sync::{Arc, Mutex};
 
-    use tempfile::{self, TempDir};
-
+    use tests::TempDir;
     use super::{DirEntry, WalkBuilder, WalkState};
 
     fn wfile<P: AsRef<Path>>(path: P, contents: &str) {
@@ -1818,7 +1817,7 @@ mod tests {
     }
 
     fn tmpdir(prefix: &str) -> TempDir {
-        tempfile::Builder::new().prefix(prefix).tempdir().unwrap()
+        TempDir::new().unwrap()
     }
 
     fn assert_paths(
