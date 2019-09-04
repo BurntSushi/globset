@@ -47,8 +47,9 @@ jobs:
       uses: hecrj/setup-rust-action@v1
       with:
         rust-version: ${{ matrix.rust }}
-    - run: cargo build --verbose
     - run: cargo doc --verbose
+    - run: cargo build --verbose
+    - run: cargo test --verbose
 
   rustfmt:
     name: rustfmt
