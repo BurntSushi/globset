@@ -67,7 +67,3 @@ jobs:
     - name: Check formatting
       run: |
         cargo fmt -- --check
-    - name: Check formatting in ./bench
-      working-directory: ./bench
-      run: |
-        cargo fmt -- --check
