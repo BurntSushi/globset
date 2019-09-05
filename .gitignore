@@ -2,3 +2,4 @@
 tags
 target
 /Cargo.lock
+/glob-test/Cargo.lock

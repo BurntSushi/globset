@@ -1,0 +1,49 @@
+[[tests]]
+glob = "aBcDeFg"
+input = "aBcDeFg"
+matches = true
+
+[[tests]]
+glob = "aBcDeFg"
+input = "aBcDeFg"
+matches = true
+case_insensitive = true
+
+[[tests]]
+glob = "aBcDeFg"
+input = "abcdefg"
+matches = false
+
+[[tests]]
+glob = "aBcDeFg"
+input = "abcdefg"
+matches = true
+case_insensitive = true
+
+[[tests]]
+glob = "aBcDeFg"
+input = "ABCDEFG"
+matches = false
+
+[[tests]]
+glob = "aBcDeFg"
+input = "ABCDEFG"
+matches = true
+case_insensitive = true
+
+[[tests]]
+glob = "aBcDeFg"
+input = "AbCdEfG"
+matches = true
+case_insensitive = true
+
+[[tests]]
+glob = "[a-z]"
+input = "A"
+matches = false
+
+[[tests]]
+glob = "[a-z]"
+input = "A"
+matches = true
+case_insensitive = true

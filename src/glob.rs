@@ -124,55 +124,6 @@ impl GlobMatcher {
     }
 }
 
-/// A strategic matcher for a single pattern.
-#[cfg(test)]
-#[derive(Clone, Debug)]
-struct GlobStrategic {
-    /// The match strategy to use.
-    strategy: MatchStrategy,
-    /// The underlying pattern.
-    pat: Glob,
-    /// The pattern, as a compiled regex.
-    re: Regex,
-}
-
-#[cfg(test)]
-impl GlobStrategic {
-    /// Tests whether the given path matches this pattern or not.
-    fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
-        self.is_match_candidate(&Candidate::new(path.as_ref()))
-    }
-
-    /// Tests whether the given path matches this pattern or not.
-    fn is_match_candidate(&self, candidate: &Candidate) -> bool {
-        let byte_path = &*candidate.path;
-
-        match self.strategy {
-            MatchStrategy::Literal(ref lit) => lit.as_bytes() == byte_path,
-            MatchStrategy::BasenameLiteral(ref lit) => {
-                lit.as_bytes() == &*candidate.basename
-            }
-            MatchStrategy::Extension(ref ext) => {
-                ext.as_bytes() == &*candidate.ext
-            }
-            MatchStrategy::Prefix(ref pre) => {
-                starts_with(pre.as_bytes(), byte_path)
-            }
-            MatchStrategy::Suffix { ref suffix, component } => {
-                if component && byte_path == &suffix.as_bytes()[1..] {
-                    return true;
-                }
-                ends_with(suffix.as_bytes(), byte_path)
-            }
-            MatchStrategy::RequiredExtension(ref ext) => {
-                let ext = ext.as_bytes();
-                &*candidate.ext == ext && self.re.is_match(byte_path)
-            }
-            MatchStrategy::Regex => self.re.is_match(byte_path),
-        }
-    }
-}
-
 /// A builder for a pattern.
 ///
 /// This builder enables configuring the match semantics of a pattern. For
@@ -248,19 +199,6 @@ impl Glob {
         let re =
             new_regex(&self.re).expect("regex compilation shouldn't fail");
         GlobMatcher { pat: self.clone(), re: re }
-    }
-
-    /// Returns a strategic matcher.
-    ///
-    /// This isn't exposed because it's not clear whether it's actually
-    /// faster than just running a regex for a *single* pattern. If it
-    /// is faster, then GlobMatcher should do it automatically.
-    #[cfg(test)]
-    fn compile_strategic_matcher(&self) -> GlobStrategic {
-        let strategy = MatchStrategy::new(self);
-        let re =
-            new_regex(&self.re).expect("regex compilation shouldn't fail");
-        GlobStrategic { strategy: strategy, pat: self.clone(), re: re }
     }
 
     /// Returns the original glob pattern used to build this pattern.
@@ -980,23 +918,9 @@ impl<'a> Parser<'a> {
 }
 
 #[cfg(test)]
-fn starts_with(needle: &[u8], haystack: &[u8]) -> bool {
-    needle.len() <= haystack.len() && needle == &haystack[..needle.len()]
-}
-
-#[cfg(test)]
-fn ends_with(needle: &[u8], haystack: &[u8]) -> bool {
-    if needle.len() > haystack.len() {
-        return false;
-    }
-    needle == &haystack[haystack.len() - needle.len()..]
-}
-
-#[cfg(test)]
 mod tests {
     use super::Token::*;
     use super::{Glob, GlobBuilder, Token};
-    use {ErrorKind, GlobSetBuilder};
 
     #[derive(Clone, Copy, Debug, Default)]
     struct Options {
@@ -1011,16 +935,6 @@ mod tests {
             fn $name() {
                 let pat = Glob::new($pat).unwrap();
                 assert_eq!($tokens, pat.tokens.0);
-            }
-        };
-    }
-
-    macro_rules! syntaxerr {
-        ($name:ident, $pat:expr, $err:expr) => {
-            #[test]
-            fn $name() {
-                let err = Glob::new($pat).unwrap_err();
-                assert_eq!(&$err, err.kind());
             }
         };
     }
@@ -1044,62 +958,6 @@ mod tests {
                 }
                 let pat = builder.build().unwrap();
                 assert_eq!(format!("(?-u){}", $re), pat.regex());
-            }
-        };
-    }
-
-    macro_rules! matches {
-        ($name:ident, $pat:expr, $path:expr) => {
-            matches!($name, $pat, $path, Options::default());
-        };
-        ($name:ident, $pat:expr, $path:expr, $options:expr) => {
-            #[test]
-            fn $name() {
-                let mut builder = GlobBuilder::new($pat);
-                if let Some(casei) = $options.casei {
-                    builder.case_insensitive(casei);
-                }
-                if let Some(litsep) = $options.litsep {
-                    builder.literal_separator(litsep);
-                }
-                if let Some(bsesc) = $options.bsesc {
-                    builder.backslash_escape(bsesc);
-                }
-                let pat = builder.build().unwrap();
-                let matcher = pat.compile_matcher();
-                let strategic = pat.compile_strategic_matcher();
-                let set = GlobSetBuilder::new().add(pat).build().unwrap();
-                assert!(matcher.is_match($path));
-                assert!(strategic.is_match($path));
-                assert!(set.is_match($path));
-            }
-        };
-    }
-
-    macro_rules! nmatches {
-        ($name:ident, $pat:expr, $path:expr) => {
-            nmatches!($name, $pat, $path, Options::default());
-        };
-        ($name:ident, $pat:expr, $path:expr, $options:expr) => {
-            #[test]
-            fn $name() {
-                let mut builder = GlobBuilder::new($pat);
-                if let Some(casei) = $options.casei {
-                    builder.case_insensitive(casei);
-                }
-                if let Some(litsep) = $options.litsep {
-                    builder.literal_separator(litsep);
-                }
-                if let Some(bsesc) = $options.bsesc {
-                    builder.backslash_escape(bsesc);
-                }
-                let pat = builder.build().unwrap();
-                let matcher = pat.compile_matcher();
-                let strategic = pat.compile_strategic_matcher();
-                let set = GlobSetBuilder::new().add(pat).build().unwrap();
-                assert!(!matcher.is_match($path));
-                assert!(!strategic.is_match($path));
-                assert!(!set.is_match($path));
             }
         };
     }
@@ -1170,21 +1028,10 @@ mod tests {
     syntax!(cls20, "[^a]", vec![classn('a', 'a')]);
     syntax!(cls21, "[^a-z]", vec![classn('a', 'z')]);
 
-    syntaxerr!(err_unclosed1, "[", ErrorKind::UnclosedClass);
-    syntaxerr!(err_unclosed2, "[]", ErrorKind::UnclosedClass);
-    syntaxerr!(err_unclosed3, "[!", ErrorKind::UnclosedClass);
-    syntaxerr!(err_unclosed4, "[!]", ErrorKind::UnclosedClass);
-    syntaxerr!(err_range1, "[z-a]", ErrorKind::InvalidRange('z', 'a'));
-    syntaxerr!(err_range2, "[z--]", ErrorKind::InvalidRange('z', '-'));
-
     const CASEI: Options =
         Options { casei: Some(true), litsep: None, bsesc: None };
     const SLASHLIT: Options =
         Options { casei: None, litsep: Some(true), bsesc: None };
-    const NOBSESC: Options =
-        Options { casei: None, litsep: None, bsesc: Some(false) };
-    const BSESC: Options =
-        Options { casei: None, litsep: None, bsesc: Some(true) };
 
     toregex!(re_casei, "a", "(?i)^a$", &CASEI);
 
@@ -1225,168 +1072,6 @@ mod tests {
     toregex!(re32, "/a**", r"^/a.*.*$");
     toregex!(re33, "/**a", r"^/.*.*a$");
     toregex!(re34, "/a**b", r"^/a.*.*b$");
-
-    matches!(match1, "a", "a");
-    matches!(match2, "a*b", "a_b");
-    matches!(match3, "a*b*c", "abc");
-    matches!(match4, "a*b*c", "a_b_c");
-    matches!(match5, "a*b*c", "a___b___c");
-    matches!(match6, "abc*abc*abc", "abcabcabcabcabcabcabc");
-    matches!(match7, "a*a*a*a*a*a*a*a*a", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    matches!(match8, "a*b[xyz]c*d", "abxcdbxcddd");
-    matches!(match9, "*.rs", ".rs");
-    matches!(match10, "☃", "☃");
-
-    matches!(matchrec1, "some/**/needle.txt", "some/needle.txt");
-    matches!(matchrec2, "some/**/needle.txt", "some/one/needle.txt");
-    matches!(matchrec3, "some/**/needle.txt", "some/one/two/needle.txt");
-    matches!(matchrec4, "some/**/needle.txt", "some/other/needle.txt");
-    matches!(matchrec5, "**", "abcde");
-    matches!(matchrec6, "**", "");
-    matches!(matchrec7, "**", ".asdf");
-    matches!(matchrec8, "**", "/x/.asdf");
-    matches!(matchrec9, "some/**/**/needle.txt", "some/needle.txt");
-    matches!(matchrec10, "some/**/**/needle.txt", "some/one/needle.txt");
-    matches!(matchrec11, "some/**/**/needle.txt", "some/one/two/needle.txt");
-    matches!(matchrec12, "some/**/**/needle.txt", "some/other/needle.txt");
-    matches!(matchrec13, "**/test", "one/two/test");
-    matches!(matchrec14, "**/test", "one/test");
-    matches!(matchrec15, "**/test", "test");
-    matches!(matchrec16, "/**/test", "/one/two/test");
-    matches!(matchrec17, "/**/test", "/one/test");
-    matches!(matchrec18, "/**/test", "/test");
-    matches!(matchrec19, "**/.*", ".abc");
-    matches!(matchrec20, "**/.*", "abc/.abc");
-    matches!(matchrec21, ".*/**", ".abc");
-    matches!(matchrec22, ".*/**", ".abc/abc");
-    matches!(matchrec23, "foo/**", "foo");
-    matches!(matchrec24, "**/foo/bar", "foo/bar");
-    matches!(matchrec25, "some/*/needle.txt", "some/one/needle.txt");
-
-    matches!(matchrange1, "a[0-9]b", "a0b");
-    matches!(matchrange2, "a[0-9]b", "a9b");
-    matches!(matchrange3, "a[!0-9]b", "a_b");
-    matches!(matchrange4, "[a-z123]", "1");
-    matches!(matchrange5, "[1a-z23]", "1");
-    matches!(matchrange6, "[123a-z]", "1");
-    matches!(matchrange7, "[abc-]", "-");
-    matches!(matchrange8, "[-abc]", "-");
-    matches!(matchrange9, "[-a-c]", "b");
-    matches!(matchrange10, "[a-c-]", "b");
-    matches!(matchrange11, "[-]", "-");
-    matches!(matchrange12, "a[^0-9]b", "a_b");
-
-    matches!(matchpat1, "*hello.txt", "hello.txt");
-    matches!(matchpat2, "*hello.txt", "gareth_says_hello.txt");
-    matches!(matchpat3, "*hello.txt", "some/path/to/hello.txt");
-    matches!(matchpat4, "*hello.txt", "some\\path\\to\\hello.txt");
-    matches!(matchpat5, "*hello.txt", "/an/absolute/path/to/hello.txt");
-    matches!(matchpat6, "*some/path/to/hello.txt", "some/path/to/hello.txt");
-    matches!(
-        matchpat7,
-        "*some/path/to/hello.txt",
-        "a/bigger/some/path/to/hello.txt"
-    );
-
-    matches!(matchescape, "_[[]_[]]_[?]_[*]_!_", "_[_]_?_*_!_");
-
-    matches!(matchcasei1, "aBcDeFg", "aBcDeFg", CASEI);
-    matches!(matchcasei2, "aBcDeFg", "abcdefg", CASEI);
-    matches!(matchcasei3, "aBcDeFg", "ABCDEFG", CASEI);
-    matches!(matchcasei4, "aBcDeFg", "AbCdEfG", CASEI);
-
-    matches!(matchalt1, "a,b", "a,b");
-    matches!(matchalt2, ",", ",");
-    matches!(matchalt3, "{a,b}", "a");
-    matches!(matchalt4, "{a,b}", "b");
-    matches!(matchalt5, "{**/src/**,foo}", "abc/src/bar");
-    matches!(matchalt6, "{**/src/**,foo}", "foo");
-    matches!(matchalt7, "{[}],foo}", "}");
-    matches!(matchalt8, "{foo}", "foo");
-    matches!(matchalt9, "{}", "");
-    matches!(matchalt10, "{,}", "");
-    matches!(matchalt11, "{*.foo,*.bar,*.wat}", "test.foo");
-    matches!(matchalt12, "{*.foo,*.bar,*.wat}", "test.bar");
-    matches!(matchalt13, "{*.foo,*.bar,*.wat}", "test.wat");
-
-    matches!(matchslash1, "abc/def", "abc/def", SLASHLIT);
-    #[cfg(unix)]
-    nmatches!(matchslash2, "abc?def", "abc/def", SLASHLIT);
-    #[cfg(not(unix))]
-    nmatches!(matchslash2, "abc?def", "abc\\def", SLASHLIT);
-    nmatches!(matchslash3, "abc*def", "abc/def", SLASHLIT);
-    matches!(matchslash4, "abc[/]def", "abc/def", SLASHLIT); // differs
-    #[cfg(unix)]
-    nmatches!(matchslash5, "abc\\def", "abc/def", SLASHLIT);
-    #[cfg(not(unix))]
-    matches!(matchslash5, "abc\\def", "abc/def", SLASHLIT);
-
-    matches!(matchbackslash1, "\\[", "[", BSESC);
-    matches!(matchbackslash2, "\\?", "?", BSESC);
-    matches!(matchbackslash3, "\\*", "*", BSESC);
-    matches!(matchbackslash4, "\\[a-z]", "\\a", NOBSESC);
-    matches!(matchbackslash5, "\\?", "\\a", NOBSESC);
-    matches!(matchbackslash6, "\\*", "\\\\", NOBSESC);
-    #[cfg(unix)]
-    matches!(matchbackslash7, "\\a", "a");
-    #[cfg(not(unix))]
-    matches!(matchbackslash8, "\\a", "/a");
-
-    nmatches!(matchnot1, "a*b*c", "abcd");
-    nmatches!(matchnot2, "abc*abc*abc", "abcabcabcabcabcabcabca");
-    nmatches!(matchnot3, "some/**/needle.txt", "some/other/notthis.txt");
-    nmatches!(matchnot4, "some/**/**/needle.txt", "some/other/notthis.txt");
-    nmatches!(matchnot5, "/**/test", "test");
-    nmatches!(matchnot6, "/**/test", "/one/notthis");
-    nmatches!(matchnot7, "/**/test", "/notthis");
-    nmatches!(matchnot8, "**/.*", "ab.c");
-    nmatches!(matchnot9, "**/.*", "abc/ab.c");
-    nmatches!(matchnot10, ".*/**", "a.bc");
-    nmatches!(matchnot11, ".*/**", "abc/a.bc");
-    nmatches!(matchnot12, "a[0-9]b", "a_b");
-    nmatches!(matchnot13, "a[!0-9]b", "a0b");
-    nmatches!(matchnot14, "a[!0-9]b", "a9b");
-    nmatches!(matchnot15, "[!-]", "-");
-    nmatches!(matchnot16, "*hello.txt", "hello.txt-and-then-some");
-    nmatches!(matchnot17, "*hello.txt", "goodbye.txt");
-    nmatches!(
-        matchnot18,
-        "*some/path/to/hello.txt",
-        "some/path/to/hello.txt-and-then-some"
-    );
-    nmatches!(
-        matchnot19,
-        "*some/path/to/hello.txt",
-        "some/other/path/to/hello.txt"
-    );
-    nmatches!(matchnot20, "a", "foo/a");
-    nmatches!(matchnot21, "./foo", "foo");
-    nmatches!(matchnot22, "**/foo", "foofoo");
-    nmatches!(matchnot23, "**/foo/bar", "foofoo/bar");
-    nmatches!(matchnot24, "/*.c", "mozilla-sha1/sha1.c");
-    nmatches!(matchnot25, "*.c", "mozilla-sha1/sha1.c", SLASHLIT);
-    nmatches!(
-        matchnot26,
-        "**/m4/ltoptions.m4",
-        "csharp/src/packages/repositories.config",
-        SLASHLIT
-    );
-    nmatches!(matchnot27, "a[^0-9]b", "a0b");
-    nmatches!(matchnot28, "a[^0-9]b", "a9b");
-    nmatches!(matchnot29, "[^-]", "-");
-    nmatches!(matchnot30, "some/*/needle.txt", "some/needle.txt");
-    nmatches!(
-        matchrec31,
-        "some/*/needle.txt",
-        "some/one/two/needle.txt",
-        SLASHLIT
-    );
-    nmatches!(
-        matchrec32,
-        "some/*/needle.txt",
-        "some/one/two/three/needle.txt",
-        SLASHLIT
-    );
 
     macro_rules! extract {
         ($which:ident, $name:ident, $pat:expr, $expect:expr) => {

@@ -1,0 +1,53 @@
+[[tests]]
+glob = "["
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[]"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[!"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[!]"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[z-a]"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[z--]"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[a"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[a-"
+input = ""
+matches = false
+error_compile = true
+
+[[tests]]
+glob = "[a-z"
+input = ""
+matches = false
+error_compile = true

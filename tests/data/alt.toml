@@ -1,0 +1,119 @@
+[[tests]]
+glob = "a,b"
+input = "a,b"
+matches = true
+
+[[tests]]
+glob = ","
+input = ","
+matches = true
+
+[[tests]]
+glob = "{a,b}"
+input = "a"
+matches = true
+
+[[tests]]
+glob = "{a,b}"
+input = "b"
+matches = true
+
+[[tests]]
+glob = "{a,b}"
+input = ","
+matches = false
+
+[[tests]]
+glob = "{**/src/**,foo}"
+input = "abc/src/bar"
+matches = true
+
+[[tests]]
+glob = "{**/src/**,foo}"
+input = "foo"
+matches = true
+
+[[tests]]
+glob = "{foo,**/src/**}"
+input = "abc/src/bar"
+matches = true
+
+[[tests]]
+glob = "{foo,**/src/**}"
+input = "foo"
+matches = true
+
+[[tests]]
+glob = "{[}],foo}"
+input = "}"
+matches = true
+
+[[tests]]
+glob = "{[}],foo}"
+input = "foo"
+matches = true
+
+[[tests]]
+glob = "{[}],foo}"
+input = "{"
+matches = false
+
+[[tests]]
+glob = "{foo}"
+input = "foo"
+matches = true
+
+[[tests]]
+glob = "{foo}"
+input = "{foo}"
+matches = false
+
+[[tests]]
+glob = "{}"
+input = ""
+matches = true
+
+[[tests]]
+glob = "{}"
+input = "{"
+matches = false
+
+[[tests]]
+glob = "{}"
+input = "}"
+matches = false
+
+[[tests]]
+glob = "{,}"
+input = ""
+matches = true
+
+[[tests]]
+glob = "{,}"
+input = "{"
+matches = false
+
+[[tests]]
+glob = "{,}"
+input = "}"
+matches = false
+
+[[tests]]
+glob = "{,}"
+input = ","
+matches = false
+
+[[tests]]
+glob = "{*.foo,*.bar,*.wat}"
+input = "test.foo"
+matches = true
+
+[[tests]]
+glob = "{*.foo,*.bar,*.wat}"
+input = "test.bar"
+matches = true
+
+[[tests]]
+glob = "{*.foo,*.bar,*.wat}"
+input = "test.wat"
+matches = true

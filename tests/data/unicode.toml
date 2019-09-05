@@ -1,0 +1,11 @@
+[[tests]]
+name = "snowman"
+glob = "☃"
+input = "☃"
+matches = true
+
+[[tests]]
+name = "snowman-star"
+glob = "a*"
+input = "aa☃☃☃"
+matches = true

@@ -1,0 +1,139 @@
+[[tests]]
+glob = "a[0-9]b"
+input = "a0b"
+matches = true
+
+[[tests]]
+glob = "a[!0-9]b"
+input = "a0b"
+matches = false
+
+[[tests]]
+glob = "a[!0-9]b"
+input = "a9b"
+matches = false
+
+[[tests]]
+glob = "a[1-9]b"
+input = "a0b"
+matches = false
+
+[[tests]]
+glob = "a[0-9]b"
+input = "a9b"
+matches = true
+
+[[tests]]
+glob = "a[0-8]b"
+input = "a9b"
+matches = false
+
+[[tests]]
+glob = "a[!0-9]b"
+input = "a_b"
+matches = true
+
+[[tests]]
+glob = "a[0-9]b"
+input = "a_b"
+matches = false
+
+[[tests]]
+glob = "a[!0-9]b"
+input = "a5b"
+matches = false
+
+[[tests]]
+glob = "[a-z123]"
+input = "1"
+matches = true
+
+[[tests]]
+glob = "[a-z123]"
+input = "4"
+matches = false
+
+[[tests]]
+glob = "[a-z123]"
+input = "0"
+matches = false
+
+[[tests]]
+glob = "[a-z123]"
+input = "A"
+matches = false
+
+[[tests]]
+glob = "[1a-z23]"
+input = "1"
+matches = true
+
+[[tests]]
+glob = "[123a-z]"
+input = "1"
+matches = true
+
+[[tests]]
+glob = "[abc-]"
+input = "-"
+matches = true
+
+[[tests]]
+glob = "[abc-]"
+input = "d"
+matches = false
+
+[[tests]]
+glob = "[-abc]"
+input = "-"
+matches = true
+
+[[tests]]
+glob = "[-abc]"
+input = "d"
+matches = false
+
+[[tests]]
+glob = "[-a-c]"
+input = "b"
+matches = true
+
+[[tests]]
+glob = "[-a-c]"
+input = "d"
+matches = false
+
+[[tests]]
+glob = "[a-c-]"
+input = "b"
+matches = true
+
+[[tests]]
+glob = "[a-c-]"
+input = "d"
+matches = false
+
+[[tests]]
+glob = "[-]"
+input = "-"
+matches = true
+
+[[tests]]
+glob = "a[^0-9]b"
+input = "a_b"
+matches = true
+
+[[tests]]
+glob = "a[^0-9]b"
+input = "a5b"
+matches = false
+
+[[tests]]
+glob = "[!-]"
+input = "-"
+matches = false
+
+[[tests]]
+glob = "[^-]"
+input = "-"
+matches = false

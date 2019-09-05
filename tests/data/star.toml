@@ -1,0 +1,199 @@
+[[tests]]
+glob = "a*"
+input = "a"
+matches = true
+
+[[tests]]
+glob = "a*"
+input = "ba"
+matches = false
+
+[[tests]]
+glob = "a*"
+input = "ab"
+matches = true
+
+[[tests]]
+glob = "a*b"
+input = "ab"
+matches = true
+
+[[tests]]
+glob = "a*b"
+input = "a_b"
+matches = true
+
+[[tests]]
+glob = "a*b"
+input = "abc"
+matches = false
+
+[[tests]]
+glob = "a*b*c"
+input = "abc"
+matches = true
+
+[[tests]]
+glob = "a*b*c"
+input = "a_b_c"
+matches = true
+
+[[tests]]
+glob = "a*b*c"
+input = "a___b___c"
+matches = true
+
+[[tests]]
+glob = "a*b*c"
+input = "abcd"
+matches = false
+
+[[tests]]
+glob = "abc*abc*abc"
+input = "abcabcabcabcabcabcabc"
+matches = true
+
+[[tests]]
+glob = "abc*abc*abc"
+input = "abcabcabcabcabcabcabca"
+matches = false
+
+[[tests]]
+glob = "a*a*a*a*a*a*a*a*a"
+input = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+matches = true
+
+[[tests]]
+glob = "a*b[xyz]c*d"
+input = "abxcdbxcddd"
+matches = true
+
+[[tests]]
+glob = "*.rs"
+input = ".rs"
+matches = true
+
+[[tests]]
+glob = "some/*/needle.txt"
+input = "some/one/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/*/needle.txt"
+input = "some/one/two/needle.txt"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "some/*/needle.txt"
+input = "some/needle.txt"
+matches = false
+
+[[tests]]
+glob = "some/*/needle.txt"
+input = "some/one/two/needle.txt"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "some/*/needle.txt"
+input = "some/one/two/three/needle.txt"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "hello.txt"
+matches = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "gareth_says_hello.txt"
+matches = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "some/path/to/hello.txt"
+matches = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "some/path/to/hello.txt"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "some\\path\\to\\hello.txt"
+matches = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "/an/absolute/path/to/hello.txt"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "*hello.txt"
+input = "hello.txt-and-then-some"
+matches = false
+
+[[tests]]
+glob = "*hello.txt"
+input = "goodbye.txt"
+matches = false
+
+[[tests]]
+glob = "*some/path/to/hello.txt"
+input = "a/bigger/some/path/to/hello.txt"
+matches = true
+
+[[tests]]
+glob = "*some/path/to/hello.txt"
+input = "some/path/to/hello.txt-and-then-some"
+matches = false
+
+[[tests]]
+glob = "*some/path/to/hello.txt"
+input = "some/other/path/to/hello.txt"
+matches = false
+
+[[tests]]
+glob = "abc*def"
+input = "abc/def"
+matches = true
+
+[[tests]]
+glob = "abc*def"
+input = "abc/def"
+matches = false
+literal_separator = true
+
+[[tests]]
+glob = "abc[/]def"
+input = "abc/def"
+matches = true
+literal_separator = true
+
+# FIXME: This test is wrong. There is no literal /, but it matches /.
+[[tests]]
+glob = "abc[.-0]def"
+input = "abc/def"
+matches = true
+literal_separator = true
+
+[[tests]]
+glob = "/*.c"
+input = "mozilla-sha1/sha1.c"
+matches = false
+
+[[tests]]
+glob = "*.c"
+input = "mozilla-sha1/sha1.c"
+matches = true
+
+[[tests]]
+glob = "*.c"
+input = "mozilla-sha1/sha1.c"
+matches = false
+literal_separator = true

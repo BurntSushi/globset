@@ -1,0 +1,4 @@
+[[tests]]
+glob = ["a", "a", "a"]
+input = "a"
+matches = [0, 1, 2]

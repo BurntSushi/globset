@@ -1,0 +1,174 @@
+[[tests]]
+glob = "some/**/needle.txt"
+input = "some/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/needle.txt"
+input = "some/one/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/needle.txt"
+input = "some/one/two/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/needle.txt"
+input = "some/other/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/**/needle.txt"
+input = "some/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/**/needle.txt"
+input = "some/one/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/**/needle.txt"
+input = "some/one/two/needle.txt"
+matches = true
+
+[[tests]]
+glob = "some/**/**/needle.txt"
+input = "some/other/needle.txt"
+matches = true
+
+[[tests]]
+glob = "**"
+input = "abcde"
+matches = true
+
+[[tests]]
+glob = "**"
+input = ""
+matches = true
+
+[[tests]]
+glob = "**"
+input = ".asdf"
+matches = true
+
+[[tests]]
+glob = "**"
+input = "/x/.asdf"
+matches = true
+
+[[tests]]
+glob = "**/test"
+input = "one/two/test"
+matches = true
+
+[[tests]]
+glob = "**/test"
+input = "one/test"
+matches = true
+
+[[tests]]
+glob = "**/test"
+input = "test"
+matches = true
+
+[[tests]]
+glob = "/**/test"
+input = "/one/two/test"
+matches = true
+
+[[tests]]
+glob = "/**/test"
+input = "/one/test"
+matches = true
+
+[[tests]]
+glob = "/**/test"
+input = "/test"
+matches = true
+
+[[tests]]
+glob = "/**/test"
+input = "one/two/test"
+matches = false
+
+[[tests]]
+glob = "/**/test"
+input = "one/test"
+matches = false
+
+[[tests]]
+glob = "/**/test"
+input = "test"
+matches = false
+
+[[tests]]
+glob = "/**/test"
+input = "/one/notthis"
+matches = false
+
+[[tests]]
+glob = "/**/test"
+input = "/notthis"
+matches = false
+
+[[tests]]
+glob = "**/.*"
+input = ".abc"
+matches = true
+
+[[tests]]
+glob = "**/.*"
+input = "abc/.abc"
+matches = true
+
+[[tests]]
+glob = ".*/**"
+input = ".abc"
+matches = true
+
+[[tests]]
+glob = ".*/**"
+input = ".abc/abc"
+matches = true
+
+[[tests]]
+glob = ".*/**"
+input = "a.bc"
+matches = false
+
+[[tests]]
+glob = ".*/**"
+input = "abc/a.bc"
+matches = false
+
+[[tests]]
+glob = "foo/**"
+input = "foo"
+matches = true
+
+[[tests]]
+glob = "**/foo/bar"
+input = "foo/bar"
+matches = true
+
+[[tests]]
+glob = "**/foo"
+input = "foofoo"
+matches = false
+
+[[tests]]
+glob = "**/foo/bar"
+input = "foofoo/bar"
+matches = false
+
+[[tests]]
+glob = "some/**/needle.txt"
+input = "some/other/notthis.txt"
+matches = false
+
+[[tests]]
+glob = "some/**/**/needle.txt"
+input = "some/other/notthis.txt"
+matches = false
