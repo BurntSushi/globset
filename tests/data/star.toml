@@ -169,6 +169,7 @@ input = "abc/def"
 matches = false
 literal_separator = true
 
+# FIXME: This test should probably be considered wrong, for simplicity sake.
 [[tests]]
 glob = "abc[/]def"
 input = "abc/def"
