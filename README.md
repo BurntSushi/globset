@@ -1,4 +1,4 @@
-**UNDER CONSTRUCTION**
+**This repository is not maintained. [globset is maintained in ripgrep](https://github.com/BurntSushi/ripgrep/tree/master/crates/globset).**
 
 globset
 =======
